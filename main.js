@@ -8,6 +8,14 @@ can.style.background = "#888";
 
 const con = can.getContext("2d");
 
+const key = {};
+document.onkeydown = (e) => {
+    key[e.key] = true;
+    console.log(e.key);
+}
+document.onkeyup = (e) => {
+    key[e.key] = false;
+}
 
 function degreesToRadians(degree) {
     return degree * Math.PI / 180;
@@ -20,6 +28,12 @@ function cos(degree) {
     return Math.cos(degreesToRadians(degree));
 }
 
+function drawCircle(x, y, r) {
+    con.beginPath();
+    con.arc(x, y, r, 0, 2 * Math.PI);
+    con.fillStyle = "#000";
+    con.fill();
+}
 
 /**
  * 
@@ -174,8 +188,7 @@ class Camera {
         this.rx = rx;
         this.rz = rz;
 
-        this.updateNormalVector();
-        this.updatePlane();
+        this.update();
     }
 
     updateNormalVector() {
@@ -198,20 +211,133 @@ class Camera {
 
         this.plane = new Plane(a, b, c, d);
     }
+
+    /**
+     * 
+     * @param {Point} point ポイント
+     * @returns {Point} カメラ平面上の点
+     */
+    getProjectedPoint(point) {
+        const rayVector = new Vector(this.pos.x - point.x, this.pos.y - point.y, this.pos.z - point.z);
+        const ray = new Line(this.pos, rayVector);
+        const intersection = getIntersectionOfLineAndPlane(ray, this.plane);
+
+        return intersection;
+    }
+
+    /**
+     * 
+     * @param {Array} points ポイントリスト
+     */
+    projectAllPoints(points) {
+        this.projectedPoints = [];
+        for (const point of points) {
+            this.projectedPoints.push(this.getProjectedPoint(point));
+        }
+    }
+
+    /**
+     * 
+     * @param {Point} point 変換前の座標
+     */
+    getConvertedPoint(point) {
+        const vectorFromCamPos = new Vector(point.x - this.pos.x, point.y - this.pos.y, point.z - this.pos.z);
+
+        /*
+        X = xcosθ - ysinθ
+        Y = xsinθ + ycosθ
+
+        Y = ycosθ - zsinθ
+        Z = ysinθ + zcosθ
+        */
+        let x = vectorFromCamPos.x;
+        let y = vectorFromCamPos.y;
+        let z = vectorFromCamPos.z;
+
+        // let x1 = cos(-this.rz) * (x - this.pos.x) - sin(-this.rz) * (y - this.pos.y) + this.pos.x;
+        // let y1 = sin(-this.rz) * (x - this.pos.x) + cos(-this.rz) * (y - this.pos.y) + this.pos.y;
+        // let z1 = z;
+
+        // let x2 = x1;
+        // let y2 = cos(-this.rx) * (y1 - this.pos.y) - sin(-this.rx) * (z1 - this.pos.z) + this.pos.y;
+        // let z2 = sin(-this.rx) * (y1 - this.pos.y) + cos(-this.rx) * (z1 - this.pos.z) + this.pos.z;
+
+        let x1 = cos(-this.rz) * x - sin(-this.rz) * y;
+        let y1 = sin(-this.rz) * x + cos(-this.rz) * y;
+        let z1 = z;
+
+        let x2 = x1;
+        let y2 = cos(-this.rx) * y1 - sin(-this.rx) * z1;
+        let z2 = sin(-this.rx) * y1 + cos(-this.rx) * z1;
+
+        let x3 = x2 + this.pos.x;
+        let y3 = y2 + this.pos.y;
+        let z3 = z2 + this.pos.z;
+
+        return new Point(x3, y3, z3);
+    }
+
+
+    convertAllPoints(points) {
+        this.convertedPoints = [];
+        for (const point of points) {
+            this.convertedPoints.push(this.getConvertedPoint(point));
+        }
+    }
+
+    draw() {
+        for (const point of this.convertedPoints) {
+            drawCircle((point.x - this.pos.x) * 50 + CAN_W / 2, (point.z - this.pos.z) * 50 + CAN_H / 2, 5);
+        }
+    }
+
+    move() {
+        const v = 0.1;
+        if (key["a"]) this.pos.x -= v;
+        if (key["d"]) this.pos.x += v;
+        if (key["w"]) this.pos.y += v;
+        if (key["s"]) this.pos.y -= v;
+
+        if (key[" "]) this.pos.z += v;
+        if (key["Shift"]) this.pos.z -= v;
+
+        const rv = 1;
+        if (key["ArrowLeft"]) this.rz -= rv;
+        if (key["ArrowRight"]) this.rz += rv;
+        if (key["ArrowUp"]) this.rx += rv;
+        if (key["ArrowDown"]) this.rx -= rv;
+    }
+
+    update() {
+        this.move();
+        this.updateNormalVector();
+        this.updatePlane();
+        this.projectAllPoints(pointsList);
+        this.convertAllPoints(this.projectedPoints);
+        this.draw();
+    }
 }
 
 
-const points = [
-    new Point(1, 1, 1),
-    new Point(1, 1, -1),
-    new Point(-1, 1, -1),
-    new Point(-1, 1, 1),
-    new Point(1, 3, 1),
-    new Point(1, 3, -1),
-    new Point(-1, 3, -1),
-    new Point(-1, 3, 1),
+const pointsList = [
+    new Point(1, 2, 1),
+    new Point(1, 2, -1),
+    new Point(-1, 2, -1),
+    new Point(-1, 2, 1),
+    new Point(1, 4, 1),
+    new Point(1, 4, -1),
+    new Point(-1, 4, -1),
+    new Point(-1, 4, 1),
 ];
 
 const camera = new Camera(new Point(0, 0, 0), 0, 0);
 
 console.log(camera);
+
+function mainLoop() {
+    con.clearRect(0, 0, CAN_W, CAN_H);
+
+    camera.update();
+}
+
+setInterval(mainLoop, 1000 / 60);
