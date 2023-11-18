@@ -253,6 +253,7 @@ class Camera {
         let x = vectorFromCamPos.x;
         let y = vectorFromCamPos.y;
         let z = vectorFromCamPos.z;
+        // console.log(x, y);
 
         // let x1 = cos(-this.rz) * (x - this.pos.x) - sin(-this.rz) * (y - this.pos.y) + this.pos.x;
         // let y1 = sin(-this.rz) * (x - this.pos.x) + cos(-this.rz) * (y - this.pos.y) + this.pos.y;
@@ -262,17 +263,20 @@ class Camera {
         // let y2 = cos(-this.rx) * (y1 - this.pos.y) - sin(-this.rx) * (z1 - this.pos.z) + this.pos.y;
         // let z2 = sin(-this.rx) * (y1 - this.pos.y) + cos(-this.rx) * (z1 - this.pos.z) + this.pos.z;
 
-        let x1 = cos(-this.rz) * x - sin(-this.rz) * y;
-        let y1 = sin(-this.rz) * x + cos(-this.rz) * y;
+        let x1 = cos(this.rz) * x - sin(this.rz) * y;
+        let y1 = sin(this.rz) * x + cos(this.rz) * y;
         let z1 = z;
+        // console.log(x1, y1);
 
         let x2 = x1;
         let y2 = cos(-this.rx) * y1 - sin(-this.rx) * z1;
         let z2 = sin(-this.rx) * y1 + cos(-this.rx) * z1;
+        // console.log(x2, y2);
 
         let x3 = x2 + this.pos.x;
         let y3 = y2 + this.pos.y;
         let z3 = z2 + this.pos.z;
+        // console.log(x3, y3);
 
         return new Point(x3, y3, z3);
     }
@@ -287,7 +291,7 @@ class Camera {
 
     draw() {
         for (const point of this.convertedPoints) {
-            drawCircle((point.x - this.pos.x) * 50 + CAN_W / 2, (point.z - this.pos.z) * 50 + CAN_H / 2, 5);
+            drawCircle((point.x - this.pos.x) * 50 + CAN_W / 2, (point.z - this.pos.z) * -50 + CAN_H / 2, 5);
         }
     }
 
@@ -320,6 +324,7 @@ class Camera {
 
 
 const pointsList = [
+    new Point(0, 3, 0),
     new Point(1, 2, 1),
     new Point(1, 2, -1),
     new Point(-1, 2, -1),
