@@ -11,7 +11,7 @@ const con = can.getContext("2d");
 const key = {};
 document.onkeydown = (e) => {
     key[e.key] = true;
-    console.log(e.key);
+    // console.log(e.key);
 }
 document.onkeyup = (e) => {
     key[e.key] = false;
@@ -182,19 +182,21 @@ class Camera {
      * @param {Point} pos カメラの位置
      * @param {number} rx x軸回転の角度
      * @param {number} rz z軸回転の角度
+     * @param {number} focalLength 焦点距離
      */
-    constructor(pos, rx, rz) {
+    constructor(pos, rx, rz, focalLength) {
         this.pos = pos;
         this.rx = rx;
         this.rz = rz;
+        this.focalLength = focalLength;
 
         this.update();
     }
 
     updateNormalVector() {
-        const z = sin(this.rx);
-        const y = cos(this.rz) * cos(this.rx);
-        const x = sin(this.rz) * cos(this.rx);
+        const z = sin(this.rx) * this.focalLength;
+        const y = cos(this.rz) * cos(this.rx) * this.focalLength;
+        const x = sin(this.rz) * cos(this.rx) * this.focalLength;
 
         this.normalVector = new Vector(x, y, z);
     }
@@ -255,14 +257,6 @@ class Camera {
         let z = vectorFromCamPos.z;
         // console.log(x, y);
 
-        // let x1 = cos(-this.rz) * (x - this.pos.x) - sin(-this.rz) * (y - this.pos.y) + this.pos.x;
-        // let y1 = sin(-this.rz) * (x - this.pos.x) + cos(-this.rz) * (y - this.pos.y) + this.pos.y;
-        // let z1 = z;
-
-        // let x2 = x1;
-        // let y2 = cos(-this.rx) * (y1 - this.pos.y) - sin(-this.rx) * (z1 - this.pos.z) + this.pos.y;
-        // let z2 = sin(-this.rx) * (y1 - this.pos.y) + cos(-this.rx) * (z1 - this.pos.z) + this.pos.z;
-
         let x1 = cos(this.rz) * x - sin(this.rz) * y;
         let y1 = sin(this.rz) * x + cos(this.rz) * y;
         let z1 = z;
@@ -292,6 +286,12 @@ class Camera {
     draw() {
         for (const point of this.convertedPoints) {
             drawCircle((point.x - this.pos.x) * 50 + CAN_W / 2, (point.z - this.pos.z) * -50 + CAN_H / 2, 5);
+            con.fillStyle = "#fff";
+            con.fillText(
+                this.convertedPoints.indexOf(point),
+                (point.x - this.pos.x) * 50 + CAN_W / 2,
+                (point.z - this.pos.z) * -50 + CAN_H / 2
+            );
         }
     }
 
@@ -317,7 +317,7 @@ class Camera {
         if (key[" "]) this.pos.z += v;
         if (key["Shift"]) this.pos.z -= v;
 
-        const rv = 1;
+        const rv = 1.5;
         if (key["ArrowLeft"]) this.rz -= rv;
         if (key["ArrowRight"]) this.rz += rv;
         if (key["ArrowUp"]) this.rx += rv;
@@ -347,7 +347,7 @@ const pointsList = [
     new Point(-1, 4, 1),
 ];
 
-const camera = new Camera(new Point(0, 0, 0), 0, 0);
+const camera = new Camera(new Point(0, 0, 0), 0, 0, 3);
 
 console.log(camera);
 
