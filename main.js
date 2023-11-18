@@ -297,10 +297,22 @@ class Camera {
 
     move() {
         const v = 0.1;
-        if (key["a"]) this.pos.x -= v;
-        if (key["d"]) this.pos.x += v;
-        if (key["w"]) this.pos.y += v;
-        if (key["s"]) this.pos.y -= v;
+        if (key["a"]) {
+            this.pos.x -= cos(this.rz) * v;
+            this.pos.y += sin(this.rz) * v;
+        }
+        if (key["d"]) {
+            this.pos.x += cos(this.rz) * v;
+            this.pos.y -= sin(this.rz) * v
+        }
+        if (key["w"]) {
+            this.pos.x += sin(this.rz) * v;
+            this.pos.y += cos(this.rz) * v;
+        }
+        if (key["s"]) {
+            this.pos.x -= sin(this.rz) * v;
+            this.pos.y -= cos(this.rz) * v;
+        }
 
         if (key[" "]) this.pos.z += v;
         if (key["Shift"]) this.pos.z -= v;
@@ -324,7 +336,7 @@ class Camera {
 
 
 const pointsList = [
-    new Point(0, 3, 0),
+    // new Point(0, 3, 0),
     new Point(1, 2, 1),
     new Point(1, 2, -1),
     new Point(-1, 2, -1),
