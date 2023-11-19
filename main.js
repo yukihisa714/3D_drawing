@@ -58,7 +58,7 @@ class Camera {
     }
 
     /**
-     * 
+     * 点をカメラ平面に投影
      * @param {Point} point ポイント
      * @returns {Point} カメラ平面上の点
      */
@@ -71,7 +71,7 @@ class Camera {
     }
 
     /**
-     * 
+     * すべての点を投影
      * @param {Array} points ポイントリスト
      */
     projectAllPoints(points) {
@@ -82,7 +82,7 @@ class Camera {
     }
 
     /**
-     * 
+     * カメラ平面の点を
      * @param {Point} point 変換前の座標
      */
     getConvertedPoint(point) {

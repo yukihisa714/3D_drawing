@@ -48,15 +48,23 @@ export class Vector {
     }
 
     /**
+     * 乗算
+     * @param {number} rate かける数
+     */
+    multiplication(rate) {
+        this.x *= rate;
+        this.y *= rate;
+        this.z *= rate;
+    }
+
+    /**
      * 長さを変えるメソッド
      * @param {number} newLength 新しい長さ
      */
     changeLength(newLength) {
         const rate = newLength / this.length;
         this.length = newLength;
-        this.x *= rate;
-        this.y *= rate;
-        this.z *= rate;
+        this.multiplication(rate);
     }
 
     /**
