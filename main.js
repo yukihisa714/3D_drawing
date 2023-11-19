@@ -1,4 +1,4 @@
-import { Line, Point, Vector, cos, getIntersectionOfLineAndPlane, getPlaneFromVectorAndPoint, sin } from "./math.js";
+import { Line, Point, Vector, cos, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, sin } from "./math.js";
 
 const CAN_W = 250;
 const CAN_H = 250;
@@ -65,7 +65,7 @@ class Camera {
     getProjectedPoint(point) {
         const rayVector = new Vector(this.pos.x - point.x, this.pos.y - point.y, this.pos.z - point.z);
         const ray = new Line(this.pos, rayVector);
-        const intersection = getIntersectionOfLineAndPlane(ray, this.plane);
+        const intersection = getIntersectionFromLineAndPlane(ray, this.plane);
 
         return intersection;
     }
@@ -82,7 +82,7 @@ class Camera {
     }
 
     /**
-     * カメラ平面の点を
+     * カメラ平面の点の座標変換をするメソッド
      * @param {Point} point 変換前の座標
      */
     getConvertedPoint(point) {
@@ -187,6 +187,21 @@ const pointsList = [
     new Point(1, 4, -1),
     new Point(-1, 4, -1),
     new Point(-1, 4, 1),
+];
+
+class Edge {
+    constructor(p1, p2) {
+        this.p1 = p1;
+        this.p2 = p2;
+        this.vector = new Vector(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
+    }
+}
+
+const edges = [
+    new Edge(pointsList[0], pointsList[1]),
+    new Edge(pointsList[1], pointsList[2]),
+    new Edge(pointsList[2], pointsList[3]),
+    new Edge(pointsList[3], pointsList[0]),
 ];
 
 const camera = new Camera(new Point(0, 0, 0), 0, 0, 3);

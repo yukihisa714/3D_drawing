@@ -22,6 +22,16 @@ export class Point {
         this.y = y;
         this.z = z;
     }
+
+    /**
+     * 点をベクトルに従って動かすメソッド
+     * @param {Vector} vector 移動ベクトル
+     */
+    move(vector) {
+        this.x += vector.x;
+        this.y += vector.y;
+        this.z += vector.z;
+    }
 }
 
 export class Vector {
@@ -114,6 +124,28 @@ export class Plane {
         this.c = c;
         this.d = d;
     }
+
+    /**
+     * 方程式に代入するメソッド
+     * @param {number} x 
+     * @param {number} y 
+     * @param {number} z 
+     * @returns 
+     */
+    substitute(x, y, z) {
+        return this.a * x + this.b * y + this.c * z;
+    }
+
+    /**
+     * 点が平面の表と裏どちらにあるかを求めるメソッド
+     * @param {Point} point 対象の点
+     * @returns {Boolean} 表または平面上にあればtrue, 裏にあればfalse
+     */
+    isPointInFrontOf(point) {
+        const result = this.substitute(point.x, point.y, point.z);
+        if (result >= 0) return true;
+        else return false;
+    }
 }
 
 /**
@@ -139,7 +171,7 @@ export function getPlaneFromVectorAndPoint(normalVector, point) {
  * @param {Line} line 直線
  * @param {Plane} plane 平面
  */
-export function getIntersectionOfLineAndPlane(line, plane) {
+export function getIntersectionFromLineAndPlane(line, plane) {
     /*
     x = x0 + tl
     y = y0 + tm
