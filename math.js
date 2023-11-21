@@ -9,6 +9,13 @@ export function cos(degree) {
     return Math.cos(degreesToRadians(degree));
 }
 
+export function max(num1, num2) {
+    return Math.max(num1, num2);
+}
+export function min(num1, num2) {
+    return Math.min(num1, num2);
+}
+
 
 export class Point {
     /**
@@ -133,7 +140,7 @@ export class Plane {
      * @returns 
      */
     substitute(x, y, z) {
-        return this.a * x + this.b * y + this.c * z;
+        return this.a * x + this.b * y + this.c * z + this.d;
     }
 
     /**

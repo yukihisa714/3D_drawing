@@ -1,7 +1,13 @@
 import { Line, Point, Vector, cos, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, sin } from "./math.js";
+import { Edge, Vertex } from "./shape.js";
 
-const CAN_W = 250;
-const CAN_H = 250;
+const CAMERA_W = 3;
+const CAMERA_H = 3;
+
+const expandingRatio = 80;
+
+const CAN_W = CAMERA_W * expandingRatio;
+const CAN_H = CAMERA_H * expandingRatio;
 
 const can = document.getElementById("canvas");
 can.width = CAN_W;
@@ -27,6 +33,16 @@ function drawCircle(x, y, r) {
     con.fill();
 }
 
+function drawLine(x1, y1, x2, y2) {
+    con.beginPath();
+    con.lineTo(x1, y1);
+    con.lineTo(x2, y2);
+    con.closePath();
+    con.lineWIdth = 1;
+    con.strokeStyle = "#000";
+    con.stroke();
+}
+
 
 class Camera {
     /**
@@ -36,11 +52,23 @@ class Camera {
      * @param {number} rz z軸回転の角度
      * @param {number} focalLength 焦点距離
      */
-    constructor(pos, rx, rz, focalLength) {
+    constructor(pos, rx, rz, focalLength, width, height) {
         this.pos = pos;
         this.rx = rx;
         this.rz = rz;
         this.focalLength = focalLength;
+        this.width = width;
+        this.height = height;
+
+        this.importedVertexes = []
+        for (const vertex of vertexesList) {
+            this.importedVertexes.push(new Vertex(vertex.x, vertex.y, vertex.z));
+        }
+
+        this.importedEdges = [];
+        for (const edge of edges) {
+            this.importedEdges.push(new Edge(edge.vertex1, edge.vertex2));
+        }
 
         this.update();
     }
@@ -55,6 +83,18 @@ class Camera {
 
     updatePlane() {
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.pos);
+    }
+
+    processEdge() {
+        this.vertexesToProject = [];
+        for (const vertex of vertexesList) {
+            this.vertexesToProject.push(vertex);
+        }
+
+
+        for (const edge of edges) {
+            edge.correctVertexToFront(this.plane);
+        }
     }
 
     /**
@@ -77,7 +117,9 @@ class Camera {
     projectAllPoints(points) {
         this.projectedPoints = [];
         for (const point of points) {
-            this.projectedPoints.push(this.getProjectedPoint(point));
+            if (this.plane.isPointInFrontOf(point)) {
+                this.projectedPoints.push(this.getProjectedPoint(point));
+            }
         }
     }
 
@@ -127,13 +169,11 @@ class Camera {
 
     draw() {
         for (const point of this.convertedPoints) {
-            drawCircle((point.x - this.pos.x) * 50 + CAN_W / 2, (point.z - this.pos.z) * -50 + CAN_H / 2, 5);
+            const dx = (point.x - this.pos.x) * expandingRatio + CAN_W / 2;
+            const dy = (point.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+            drawCircle(dx, dy, 5);
             con.fillStyle = "#fff";
-            con.fillText(
-                this.convertedPoints.indexOf(point),
-                (point.x - this.pos.x) * 50 + CAN_W / 2,
-                (point.z - this.pos.z) * -50 + CAN_H / 2
-            );
+            con.fillText(this.convertedPoints.indexOf(point), dx, dy);
         }
     }
 
@@ -170,41 +210,56 @@ class Camera {
         this.move();
         this.updateNormalVector();
         this.updatePlane();
-        this.projectAllPoints(pointsList);
+        this.projectAllPoints(vertexesList);
         this.convertAllPoints(this.projectedPoints);
         this.draw();
     }
 }
 
 
-const pointsList = [
-    new Point(0, 3, 0),
-    new Point(1, 2, 1),
-    new Point(1, 2, -1),
-    new Point(-1, 2, -1),
-    new Point(-1, 2, 1),
-    new Point(1, 4, 1),
-    new Point(1, 4, -1),
-    new Point(-1, 4, -1),
-    new Point(-1, 4, 1),
+const vertexesList = [
+    new Vertex(0, 3, 0),
+    new Vertex(1, 2, 1),
+    new Vertex(1, 2, -1),
+    new Vertex(-1, 2, -1),
+    new Vertex(-1, 2, 1),
+    new Vertex(1, 4, 1),
+    new Vertex(1, 4, -1),
+    new Vertex(-1, 4, -1),
+    new Vertex(-1, 4, 1),
 ];
 
-class Edge {
-    constructor(p1, p2) {
-        this.p1 = p1;
-        this.p2 = p2;
-        this.vector = new Vector(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z);
-    }
+// const vertexesList = []
+// for (const point of pointsList) {
+//     vertexesList.push(new Vertex(point.x, point.y, point.z, pointsList.indexOf(point)));
+// }
+// console.log(vertexesList);
+
+const edgeIndexesList = [
+    [1, 2],
+    [2, 3],
+    [3, 4],
+    [4, 1],
+    [5, 6],
+    [5, 7],
+    [7, 8],
+    [8, 5],
+    [1, 5],
+    [2, 6],
+    [3, 7],
+    [4, 8],
+];
+
+const edges = [];
+for (const i of edgeIndexesList) {
+    const i1 = i[0];
+    const i2 = i[1];
+    edges.push(new Edge(vertexesList[i1], vertexesList[i2]));
 }
+console.log(edges);
 
-const edges = [
-    new Edge(pointsList[0], pointsList[1]),
-    new Edge(pointsList[1], pointsList[2]),
-    new Edge(pointsList[2], pointsList[3]),
-    new Edge(pointsList[3], pointsList[0]),
-];
 
-const camera = new Camera(new Point(0, 0, 0), 0, 0, 3);
+const camera = new Camera(new Point(0, -1, 0), 0, 0, 3, 3, 3);
 
 console.log(camera);
 
