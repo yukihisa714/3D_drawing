@@ -21,8 +21,9 @@ export class Edge {
     /**
      * 
      * @param {Plane} plane 
+     * @returns {Boolean}
      */
-    isIntersectionOnPlane(plane) {
+    isIntersectionOnEdge(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
         if (
             intersection.x > this.min.x &&
@@ -43,7 +44,7 @@ export class Edge {
      */
     correctVertexToFront(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
-        if (this.isIntersectionOnPlane(plane)) {
+        if (this.isIntersectionOnEdge(plane)) {
             if (plane.isPointInFrontOf(this.vertex1)) {
                 this.vertex2 = intersection;
             }

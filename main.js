@@ -60,16 +60,6 @@ class Camera {
         this.width = width;
         this.height = height;
 
-        this.importedVertexes = []
-        for (const vertex of vertexesList) {
-            this.importedVertexes.push(new Vertex(vertex.x, vertex.y, vertex.z));
-        }
-
-        this.importedEdges = [];
-        for (const edge of edges) {
-            this.importedEdges.push(new Edge(edge.vertex1, edge.vertex2));
-        }
-
         this.update();
     }
 
@@ -85,14 +75,23 @@ class Camera {
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.pos);
     }
 
-    processEdge() {
-        this.vertexesToProject = [];
+    process() {
+        this.importedVertexes = [];
         for (const vertex of vertexesList) {
+            this.importedVertexes.push(new Vertex(vertex.x, vertex.y, vertex.z));
+        }
+
+        this.importedEdges = [];
+        for (const edge of edges) {
+            this.importedEdges.push(new Edge(edge.vertex1, edge.vertex2));
+        }
+
+        this.vertexesToProject = [];
+        for (const vertex of importedVertexes) {
             this.vertexesToProject.push(vertex);
         }
 
-
-        for (const edge of edges) {
+        for (const edge of importedEdges) {
             edge.correctVertexToFront(this.plane);
         }
     }
@@ -110,13 +109,10 @@ class Camera {
         return intersection;
     }
 
-    /**
-     * すべての点を投影
-     * @param {Array} points ポイントリスト
-     */
-    projectAllPoints(points) {
+
+    projectAllPoints() {
         this.projectedPoints = [];
-        for (const point of points) {
+        for (const point of this.vertexesToProject) {
             if (this.plane.isPointInFrontOf(point)) {
                 this.projectedPoints.push(this.getProjectedPoint(point));
             }
@@ -160,9 +156,9 @@ class Camera {
     }
 
 
-    convertAllPoints(points) {
+    convertAllPoints() {
         this.convertedPoints = [];
-        for (const point of points) {
+        for (const point of projectedPoints) {
             this.convertedPoints.push(this.getConvertedPoint(point));
         }
     }
@@ -210,7 +206,8 @@ class Camera {
         this.move();
         this.updateNormalVector();
         this.updatePlane();
-        this.projectAllPoints(vertexesList);
+        this.process();
+        this.projectAllPoints();
         this.convertAllPoints(this.projectedPoints);
         this.draw();
     }
