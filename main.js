@@ -78,7 +78,7 @@ class Camera {
     process() {
         this.importedVertexes = [];
         for (const vertex of vertexesList) {
-            this.importedVertexes.push(new Vertex(vertex.x, vertex.y, vertex.z));
+            this.importedVertexes.push(new Vertex(vertex.x, vertex.y, vertex.z, vertex.i));
         }
 
         this.importedEdges = [];
@@ -86,45 +86,45 @@ class Camera {
             this.importedEdges.push(new Edge(edge.vertex1, edge.vertex2));
         }
 
-        this.vertexesToProject = [];
-        for (const vertex of importedVertexes) {
-            this.vertexesToProject.push(vertex);
+        this.frontVertexes = [];
+        for (const vertex of this.importedVertexes) {
+            // if (this.plane.isPointInFrontOf(vertex)) {
+            this.frontVertexes.push(new Vertex(vertex.x, vertex.y, vertex.z, vertex.i));
+            // }
         }
 
-        for (const edge of importedEdges) {
+        for (const edge of this.importedEdges) {
             edge.correctVertexToFront(this.plane);
         }
     }
 
     /**
      * 点をカメラ平面に投影
-     * @param {Point} point ポイント
-     * @returns {Point} カメラ平面上の点
+     * @param {Vertex} vertex ポイント
+     * @returns {Vertex} カメラ平面上の点
      */
-    getProjectedPoint(point) {
-        const rayVector = new Vector(this.pos.x - point.x, this.pos.y - point.y, this.pos.z - point.z);
+    getProjectedVertex(vertex) {
+        const rayVector = new Vector(this.pos.x - vertex.x, this.pos.y - vertex.y, this.pos.z - vertex.z);
         const ray = new Line(this.pos, rayVector);
         const intersection = getIntersectionFromLineAndPlane(ray, this.plane);
 
-        return intersection;
+        return new Vertex(intersection.x, intersection.y, intersection.z, vertex.i);
     }
 
 
-    projectAllPoints() {
+    projectAllVertexes() {
         this.projectedPoints = [];
-        for (const point of this.vertexesToProject) {
-            if (this.plane.isPointInFrontOf(point)) {
-                this.projectedPoints.push(this.getProjectedPoint(point));
-            }
+        for (const vertex of this.frontVertexes) {
+            this.projectedPoints.push(this.getProjectedVertex(vertex));
         }
     }
 
     /**
      * カメラ平面の点の座標変換をするメソッド
-     * @param {Point} point 変換前の座標
+     * @param {Vertex} vertex 変換前の座標
      */
-    getConvertedPoint(point) {
-        const vectorFromCamPos = new Vector(point.x - this.pos.x, point.y - this.pos.y, point.z - this.pos.z);
+    getConvertedVertex(vertex) {
+        const vectorFromCamPos = new Vector(vertex.x - this.pos.x, vertex.y - this.pos.y, vertex.z - this.pos.z);
 
         /*
         X = xcosθ - ysinθ
@@ -152,24 +152,45 @@ class Camera {
         const z3 = z2 + this.pos.z;
         // console.log(x3, y3);
 
-        return new Point(x3, y3, z3);
+        return new Vertex(x3, y3, z3, vertex.i);
     }
 
 
-    convertAllPoints() {
+    convertAllVertexes() {
         this.convertedPoints = [];
-        for (const point of projectedPoints) {
-            this.convertedPoints.push(this.getConvertedPoint(point));
+        for (const vertex of this.projectedPoints) {
+            this.convertedPoints.push(this.getConvertedVertex(vertex));
         }
     }
 
     draw() {
-        for (const point of this.convertedPoints) {
-            const dx = (point.x - this.pos.x) * expandingRatio + CAN_W / 2;
-            const dy = (point.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-            drawCircle(dx, dy, 5);
-            con.fillStyle = "#fff";
-            con.fillText(this.convertedPoints.indexOf(point), dx, dy);
+        for (const vertex of this.convertedPoints) {
+            const zeroPlane = getPlaneFromVectorAndPoint(new Vector(0, this.focalLength, 0), this.pos);
+            if (zeroPlane.isPointInFrontOf(vertex)) {
+                const dx = (vertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
+                const dy = (vertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+                drawCircle(dx, dy, 5);
+                con.fillStyle = "#fff";
+                con.fillText(vertex.i, dx, dy);
+            }
+        }
+
+        const vertexeseToDrawEdge = [];
+        for (let i = 0; i < this.convertedPoints.length; i++) {
+            const vertex = this.convertedPoints[i];
+            vertexeseToDrawEdge[vertex.i] = vertex;
+        }
+        // console.log(this.convertedPoints);
+        // console.log(vertexeseToDrawEdge);
+        for (let i = 0; i < this.importedEdges.length; i++) {
+            const edge = this.importedEdges[i];
+            const vertex1 = vertexeseToDrawEdge[edge.vertex1.i];
+            const vertex2 = vertexeseToDrawEdge[edge.vertex2.i];
+            const dx1 = (vertex1.x - this.pos.x) * expandingRatio + CAN_W / 2;
+            const dy1 = (vertex1.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+            const dx2 = (vertex2.x - this.pos.x) * expandingRatio + CAN_W / 2;
+            const dy2 = (vertex2.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+            drawLine(dx1, dy1, dx2, dy2);
         }
     }
 
@@ -207,8 +228,8 @@ class Camera {
         this.updateNormalVector();
         this.updatePlane();
         this.process();
-        this.projectAllPoints();
-        this.convertAllPoints(this.projectedPoints);
+        this.projectAllVertexes();
+        this.convertAllVertexes(this.projectedPoints);
         this.draw();
     }
 }
@@ -225,12 +246,10 @@ const vertexesList = [
     new Vertex(-1, 4, -1),
     new Vertex(-1, 4, 1),
 ];
+for (let i = 0; i < vertexesList.length; i++) {
+    vertexesList[i].i = i;
+}
 
-// const vertexesList = []
-// for (const point of pointsList) {
-//     vertexesList.push(new Vertex(point.x, point.y, point.z, pointsList.indexOf(point)));
-// }
-// console.log(vertexesList);
 
 const edgeIndexesList = [
     [1, 2],
@@ -238,7 +257,7 @@ const edgeIndexesList = [
     [3, 4],
     [4, 1],
     [5, 6],
-    [5, 7],
+    [6, 7],
     [7, 8],
     [8, 5],
     [1, 5],
@@ -256,7 +275,7 @@ for (const i of edgeIndexesList) {
 console.log(edges);
 
 
-const camera = new Camera(new Point(0, -1, 0), 0, 0, 3, 3, 3);
+const camera = new Camera(new Point(0, 0, 0), 0, 0, 3, 3, 3);
 
 console.log(camera);
 
