@@ -190,21 +190,20 @@ class Camera {
 
         for (const edge of this.importedEdges) {
             edge.correctVertexToFront(this.plane);
-            if (this.plane.isPointInFrontOf(edge.vertex1) && this.plane.isPointInFrontOf(edge.vertex2)) {
-                const vertex1 = edge.vertex1.getClone();
-                const vertex2 = edge.vertex2.getClone();
-                const projectedVertex1 = this.getProjectedVertex(vertex1);
-                const projectedVertex2 = this.getProjectedVertex(vertex2);
-                const convertedVertex1 = this.getConvertedVertex(projectedVertex1);
-                const convertedVertex2 = this.getConvertedVertex(projectedVertex2);
+            if (!this.plane.isPointInFrontOf(edge.vertex1) && !this.plane.isPointInFrontOf(edge.vertex2)) continue;
+            const vertex1 = edge.vertex1.getClone();
+            const vertex2 = edge.vertex2.getClone();
+            const projectedVertex1 = this.getProjectedVertex(vertex1);
+            const projectedVertex2 = this.getProjectedVertex(vertex2);
+            const convertedVertex1 = this.getConvertedVertex(projectedVertex1);
+            const convertedVertex2 = this.getConvertedVertex(projectedVertex2);
 
-                const dx1 = (convertedVertex1.x - this.pos.x) * expandingRatio + CAN_W / 2;
-                const dy1 = (convertedVertex1.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-                const dx2 = (convertedVertex2.x - this.pos.x) * expandingRatio + CAN_W / 2;
-                const dy2 = (convertedVertex2.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+            const dx1 = (convertedVertex1.x - this.pos.x) * expandingRatio + CAN_W / 2;
+            const dy1 = (convertedVertex1.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+            const dx2 = (convertedVertex2.x - this.pos.x) * expandingRatio + CAN_W / 2;
+            const dy2 = (convertedVertex2.z - this.pos.z) * -expandingRatio + CAN_H / 2;
 
-                drawLine(dx1, dy1, dx2, dy2);
-            }
+            drawLine(dx1, dy1, dx2, dy2);
         }
 
         // const vertexeseToDrawEdge = [];
