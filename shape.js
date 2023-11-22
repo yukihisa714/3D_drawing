@@ -6,6 +6,10 @@ export class Vertex extends Point {
         super(x, y, z);
         this.i = i;
     }
+
+    getClone() {
+        return new Vertex(this.x, this.y, this.z, this.i);
+    }
 }
 
 export class Edge {
@@ -18,6 +22,10 @@ export class Edge {
         this.max = new Point(max(vertex1.x, vertex2.x), max(vertex1.y, vertex2.y), max(vertex1.z, vertex2.z));
     }
 
+    getClone() {
+        return new Edge(this.vertex1.getClone(), this.vertex2.getClone());
+    }
+
     /**
      * 
      * @param {Plane} plane 
@@ -26,12 +34,12 @@ export class Edge {
     isIntersectionOnEdge(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
         if (
-            intersection.x > this.min.x &&
-            intersection.x < this.max.x &&
-            intersection.y > this.min.y &&
-            intersection.y < this.max.y &&
-            intersection.z > this.min.z &&
-            intersection.z < this.max.z
+            intersection.x >= this.min.x &&
+            intersection.x <= this.max.x &&
+            intersection.y >= this.min.y &&
+            intersection.y <= this.max.y &&
+            intersection.z >= this.min.z &&
+            intersection.z <= this.max.z
         ) {
             return true;
         }
@@ -46,7 +54,7 @@ export class Edge {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
         if (this.isIntersectionOnEdge(plane)) {
             if (plane.isPointInFrontOf(this.vertex1)) {
-                this.vertex2 = intersection;
+                this.vertex2 = intersection.getClone();
             }
             else {
                 this.vertex1 = intersection;

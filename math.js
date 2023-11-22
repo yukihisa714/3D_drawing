@@ -30,6 +30,10 @@ export class Point {
         this.z = z;
     }
 
+    getClone() {
+        return new Point(this.x, this.y, this.z);
+    }
+
     /**
      * 点をベクトルに従って動かすメソッド
      * @param {Vector} vector 移動ベクトル
@@ -54,6 +58,10 @@ export class Vector {
         this.z = z;
 
         this.length = this.getLength();
+    }
+
+    getClone() {
+        return new Vector(this.x, this.y, this.z);
     }
 
     /**
