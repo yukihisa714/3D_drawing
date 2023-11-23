@@ -17,11 +17,11 @@ can.style.background = "#888";
 const con = can.getContext("2d");
 
 const key = {};
-document.onkeydown = (e) => {
+document.onkeydown = e => {
     key[e.key] = true;
     // console.log(e.key);
 }
-document.onkeyup = (e) => {
+document.onkeyup = e => {
     key[e.key] = false;
 }
 
@@ -80,20 +80,9 @@ class Camera {
     }
 
 
-    process() {
-        this.importedVertexes = [];
-        for (const vertex of vertexesList) {
-            this.importedVertexes.push(vertex.getClone());
-        }
-
-        this.importedEdges = [];
-        for (const edge of edges) {
-            this.importedEdges.push(edge.getClone());
-        }
-
-        for (const edge of this.importedEdges) {
-            edge.correctVertexToFront(this.plane);
-        }
+    importShapes() {
+        this.importedVertexes = vertexesList.map(vertex => vertex.getClone());
+        this.importedEdges = edges.map(edge => edge.getClone());
     }
 
 
@@ -145,17 +134,23 @@ class Camera {
     }
 
 
+    getToDrawVertex(vertex) {
+        const projectedVertex = this.getProjectedVertex(vertex);
+        const convertedVertex = this.getConvertedVertex(projectedVertex);
+        return convertedVertex;
+    }
+
+
     draw() {
         for (const vertex of this.importedVertexes) {
             if (this.plane.isPointInFrontOf(vertex)) {
-                const projectedVertex = this.getProjectedVertex(vertex);
-                const convertedVertex = this.getConvertedVertex(projectedVertex);
+                const toDrawVertex = this.getToDrawVertex(vertex);
 
-                const dx = (convertedVertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
-                const dy = (convertedVertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+                const dx = (toDrawVertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
+                const dy = (toDrawVertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
                 drawCircle(dx, dy, 5);
                 con.fillStyle = "#fff";
-                con.fillText(convertedVertex.i, dx, dy);
+                con.fillText(toDrawVertex.i, dx, dy);
             }
         }
 
@@ -164,15 +159,14 @@ class Camera {
             if (!this.plane.isPointInFrontOf(edge.vertex1) && !this.plane.isPointInFrontOf(edge.vertex2)) continue;
             const vertex1 = edge.vertex1.getClone();
             const vertex2 = edge.vertex2.getClone();
-            const projectedVertex1 = this.getProjectedVertex(vertex1);
-            const projectedVertex2 = this.getProjectedVertex(vertex2);
-            const convertedVertex1 = this.getConvertedVertex(projectedVertex1);
-            const convertedVertex2 = this.getConvertedVertex(projectedVertex2);
 
-            const dx1 = (convertedVertex1.x - this.pos.x) * expandingRatio + CAN_W / 2;
-            const dy1 = (convertedVertex1.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-            const dx2 = (convertedVertex2.x - this.pos.x) * expandingRatio + CAN_W / 2;
-            const dy2 = (convertedVertex2.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+            const toDrawVertex1 = this.getToDrawVertex(vertex1);
+            const toDrawVertex2 = this.getToDrawVertex(vertex2);
+
+            const dx1 = (toDrawVertex1.x - this.pos.x) * expandingRatio + CAN_W / 2;
+            const dy1 = (toDrawVertex1.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+            const dx2 = (toDrawVertex2.x - this.pos.x) * expandingRatio + CAN_W / 2;
+            const dy2 = (toDrawVertex2.z - this.pos.z) * -expandingRatio + CAN_H / 2;
 
             drawLine(dx1, dy1, dx2, dy2);
         }
@@ -213,7 +207,7 @@ class Camera {
         this.move();
         this.updateNormalVector();
         this.updatePlane();
-        this.process();
+        this.importShapes();
         this.draw();
     }
 }

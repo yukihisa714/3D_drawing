@@ -33,17 +33,14 @@ export class Edge {
      */
     isIntersectionOnEdge(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
-        if (
+        return (
             intersection.x >= this.min.x &&
             intersection.x <= this.max.x &&
             intersection.y >= this.min.y &&
             intersection.y <= this.max.y &&
             intersection.z >= this.min.z &&
             intersection.z <= this.max.z
-        ) {
-            return true;
-        }
-        else return false;
+        )
     }
 
     /**
