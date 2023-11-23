@@ -8,6 +8,9 @@ export function sin(degree) {
 export function cos(degree) {
     return Math.cos(degreesToRadians(degree));
 }
+export function tan(degree) {
+    return Math.tan(degreesToRadians(degree));
+}
 
 export function max(num1, num2) {
     return Math.max(num1, num2);
@@ -158,8 +161,7 @@ export class Plane {
      */
     isPointInFrontOf(point) {
         const result = this.substitute(point.x, point.y, point.z);
-        if (result >= 0) return true;
-        else return false;
+        return result >= 0;
     }
 }
 

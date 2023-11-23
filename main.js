@@ -51,6 +51,8 @@ class Camera {
      * @param {number} rx x軸回転の角度
      * @param {number} rz z軸回転の角度
      * @param {number} focalLength 焦点距離
+     * @param {number} width カメラの横幅
+     * @param {number} height カメラの縦幅
      */
     constructor(pos, rx, rz, focalLength, width, height) {
         this.pos = pos;
@@ -63,6 +65,7 @@ class Camera {
         this.update();
     }
 
+
     updateNormalVector() {
         const z = sin(this.rx) * this.focalLength;
         const y = cos(this.rz) * cos(this.rx) * this.focalLength;
@@ -71,32 +74,28 @@ class Camera {
         this.normalVector = new Vector(x, y, z);
     }
 
+
     updatePlane() {
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.pos);
     }
 
+
     process() {
         this.importedVertexes = [];
         for (const vertex of vertexesList) {
-            this.importedVertexes.push(new Vertex(vertex.x, vertex.y, vertex.z, vertex.i));
+            this.importedVertexes.push(vertex.getClone());
         }
 
         this.importedEdges = [];
         for (const edge of edges) {
-            this.importedEdges.push(new Edge(edge.vertex1, edge.vertex2));
-        }
-
-        this.frontVertexes = [];
-        for (const vertex of this.importedVertexes) {
-            // if (this.plane.isPointInFrontOf(vertex)) {
-            this.frontVertexes.push(new Vertex(vertex.x, vertex.y, vertex.z, vertex.i));
-            // }
+            this.importedEdges.push(edge.getClone());
         }
 
         for (const edge of this.importedEdges) {
             edge.correctVertexToFront(this.plane);
         }
     }
+
 
     /**
      * 点をカメラ平面に投影
@@ -112,16 +111,10 @@ class Camera {
     }
 
 
-    projectAllVertexes() {
-        this.projectedPoints = [];
-        for (const vertex of this.frontVertexes) {
-            this.projectedPoints.push(this.getProjectedVertex(vertex));
-        }
-    }
-
     /**
      * カメラ平面の点の座標変換をするメソッド
      * @param {Vertex} vertex 変換前の座標
+     * @returns {Vertex} 座標変換後の座標
      */
     getConvertedVertex(vertex) {
         const vectorFromCamPos = new Vector(vertex.x - this.pos.x, vertex.y - this.pos.y, vertex.z - this.pos.z);
@@ -135,46 +128,24 @@ class Camera {
         */
 
         const { x, y, z } = vectorFromCamPos;
-        // console.log(x, y);
 
         const x1 = cos(this.rz) * x - sin(this.rz) * y;
         const y1 = sin(this.rz) * x + cos(this.rz) * y;
         const z1 = z;
-        // console.log(x1, y1);
 
         const x2 = x1;
         const y2 = cos(-this.rx) * y1 - sin(-this.rx) * z1;
         const z2 = sin(-this.rx) * y1 + cos(-this.rx) * z1;
-        // console.log(x2, y2);
 
         const x3 = x2 + this.pos.x;
         const y3 = y2 + this.pos.y;
         const z3 = z2 + this.pos.z;
-        // console.log(x3, y3);
 
         return new Vertex(x3, y3, z3, vertex.i);
     }
 
 
-    convertAllVertexes() {
-        this.convertedPoints = [];
-        for (const vertex of this.projectedPoints) {
-            this.convertedPoints.push(this.getConvertedVertex(vertex));
-        }
-    }
-
     draw() {
-        // for (const vertex of this.convertedPoints) {
-        //     const zeroPlane = getPlaneFromVectorAndPoint(new Vector(0, this.focalLength, 0), this.pos);
-        //     if (zeroPlane.isPointInFrontOf(vertex)) {
-        //         const dx = (vertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
-        //         const dy = (vertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-        //         drawCircle(dx, dy, 5);
-        //         con.fillStyle = "#fff";
-        //         con.fillText(vertex.i, dx, dy);
-        //     }
-        // }
-
         for (const vertex of this.importedVertexes) {
             if (this.plane.isPointInFrontOf(vertex)) {
                 const projectedVertex = this.getProjectedVertex(vertex);
@@ -205,25 +176,8 @@ class Camera {
 
             drawLine(dx1, dy1, dx2, dy2);
         }
-
-        // const vertexeseToDrawEdge = [];
-        // for (let i = 0; i < this.convertedPoints.length; i++) {
-        //     const vertex = this.convertedPoints[i];
-        //     vertexeseToDrawEdge[vertex.i] = vertex;
-        // }
-        // // console.log(this.convertedPoints);
-        // // console.log(vertexeseToDrawEdge);
-        // for (let i = 0; i < this.importedEdges.length; i++) {
-        //     const edge = this.importedEdges[i];
-        //     const vertex1 = vertexeseToDrawEdge[edge.vertex1.i];
-        //     const vertex2 = vertexeseToDrawEdge[edge.vertex2.i];
-        //     const dx1 = (vertex1.x - this.pos.x) * expandingRatio + CAN_W / 2;
-        //     const dy1 = (vertex1.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-        //     const dx2 = (vertex2.x - this.pos.x) * expandingRatio + CAN_W / 2;
-        //     const dy2 = (vertex2.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-        //     drawLine(dx1, dy1, dx2, dy2);
-        // }
     }
+
 
     move() {
         const v = 0.1;
@@ -254,13 +208,12 @@ class Camera {
         if (key["ArrowDown"]) this.rx -= rv;
     }
 
+
     update() {
         this.move();
         this.updateNormalVector();
         this.updatePlane();
         this.process();
-        // this.projectAllVertexes();
-        // this.convertAllVertexes(this.projectedPoints);
         this.draw();
     }
 }
@@ -278,7 +231,7 @@ const vertexesList = [
     new Vertex(-1, 4, 1),
 ];
 for (let i = 0; i < vertexesList.length; i++) {
-    vertexesList[i].i = i;
+    vertexesList[i].i = 0;
 }
 
 
