@@ -50,11 +50,11 @@ export class Edge {
     correctVertexToFront(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
         if (this.isIntersectionOnEdge(plane)) {
-            if (plane.isPointInFrontOf(this.vertex1)) {
-                this.vertex2 = intersection.getClone();
+            if (!plane.isPointInFrontOf(this.vertex1)) {
+                this.vertex1 = new Vertex(intersection.x, intersection.y, intersection.z);
             }
-            else {
-                this.vertex1 = intersection;
+            else if (!plane.isPointInFrontOf(this.vertex2)) {
+                this.vertex2 = new Vertex(intersection.x, intersection.y, intersection.z);
             }
         }
     }

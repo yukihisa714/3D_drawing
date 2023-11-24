@@ -225,7 +225,7 @@ const vertexesList = [
     new Vertex(-1, 4, 1),
 ];
 for (let i = 0; i < vertexesList.length; i++) {
-    vertexesList[i].i = 0;
+    vertexesList[i].i = i;
 }
 
 
