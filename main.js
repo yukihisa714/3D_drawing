@@ -4,7 +4,7 @@ import { Edge, Vertex } from "./shape.js";
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
 
-const expandingRatio = 256;
+const expandingRatio = 75;
 
 const CAN_W = CAMERA_W * expandingRatio;
 const CAN_H = CAMERA_H * expandingRatio;
@@ -104,8 +104,8 @@ class Camera {
      */
     getProjectedVertex(vertex) {
         const rayVector = new Vector(this.focus.x - vertex.x, this.focus.y - vertex.y, this.focus.z - vertex.z);
-        const ray = new Line(this.focus, rayVector);
-        const intersection = getIntersectionFromLineAndPlane(ray, this.plane);
+        const rayLine = new Line(this.focus, rayVector);
+        const intersection = getIntersectionFromLineAndPlane(rayLine, this.plane);
 
         return new Vertex(intersection.x, intersection.y, intersection.z, vertex.i);
     }
@@ -150,24 +150,33 @@ class Camera {
     }
 
 
-    getToDrawVertex(vertex) {
+    getOnScreenVertex(vertex) {
         const projectedVertex = this.getProjectedVertex(vertex);
         const convertedVertex = this.getConvertedVertex(projectedVertex);
         return convertedVertex;
     }
 
 
+    getToDrawVertex(vertex) {
+        const x = (vertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
+        const y = (vertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+        return { x, y };
+    }
+
+
     draw() {
         for (const vertex of this.importedVertexes) {
-            if (this.plane.isPointInFrontOf(vertex)) {
-                const toDrawVertex = this.getToDrawVertex(vertex);
+            if (this.plane.isPointInFrontOf(vertex) === false) continue;
+            const onScreenVertex1 = this.getOnScreenVertex(vertex);
 
-                const dx = (toDrawVertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
-                const dy = (toDrawVertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-                drawCircle(con, dx | 0, dy | 0, 2.5);
-                con.fillStyle = "#fff";
-                con.fillText(toDrawVertex.i, dx, dy);
-            }
+            const toDrawVertex = this.getToDrawVertex(onScreenVertex1);
+
+            const dx = toDrawVertex.x;
+            const dy = toDrawVertex.y;
+
+            drawCircle(con, dx, dy, 2.5);
+            con.fillStyle = "#fff";
+            con.fillText(onScreenVertex1.i, dx, dy);
         }
 
         for (const edge of this.importedEdges) {
@@ -176,15 +185,18 @@ class Camera {
             const vertex1 = edge.vertex1.getClone();
             const vertex2 = edge.vertex2.getClone();
 
-            const toDrawVertex1 = this.getToDrawVertex(vertex1);
-            const toDrawVertex2 = this.getToDrawVertex(vertex2);
+            const onScreenVertex1 = this.getOnScreenVertex(vertex1);
+            const onScreenVertex2 = this.getOnScreenVertex(vertex2);
 
-            const dx1 = (toDrawVertex1.x - this.pos.x) * expandingRatio + CAN_W / 2;
-            const dy1 = (toDrawVertex1.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-            const dx2 = (toDrawVertex2.x - this.pos.x) * expandingRatio + CAN_W / 2;
-            const dy2 = (toDrawVertex2.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+            const toDrawVertex1 = this.getToDrawVertex(onScreenVertex1);
+            const toDrawVertex2 = this.getToDrawVertex(onScreenVertex2);
 
-            drawLine(con, dx1 | 0, dy1 | 0, dx2 | 0, dy2 | 0);
+            const dx1 = toDrawVertex1.x;
+            const dy1 = toDrawVertex1.y;
+            const dx2 = toDrawVertex2.x;
+            const dy2 = toDrawVertex2.y;
+
+            drawLine(con, dx1, dy1, dx2, dy2);
         }
 
 
