@@ -2,6 +2,13 @@ function degreesToRadians(degree) {
     return degree * Math.PI / 180;
 }
 
+export function abs(number) {
+    return Math.abs(number);
+}
+export function sqrt(number) {
+    return Math.sqrt(number);
+}
+
 export function sin(degree) {
     return Math.sin(degreesToRadians(degree));
 }
