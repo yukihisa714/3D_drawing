@@ -4,7 +4,7 @@ import { Edge, Vertex } from "./shape.js";
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
 
-const expandingRatio = 75;
+const expandingRatio = 128;
 
 const CAN_W = CAMERA_W * expandingRatio;
 const CAN_H = CAMERA_H * expandingRatio;
