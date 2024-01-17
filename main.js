@@ -1,10 +1,10 @@
-import { Line, Point, Vector, cos, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, sin } from "./math.js";
+import { Line, Point, Vector, abs, cos, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, sin, sqrt } from "./math.js";
 import { Edge, Vertex } from "./shape.js";
 
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
 
-const expandingRatio = 128;
+const expandingRatio = 75;
 
 const CAN_W = CAMERA_W * expandingRatio;
 const CAN_H = CAMERA_H * expandingRatio;
@@ -104,10 +104,40 @@ class Camera {
      */
     getProjectedVertex(vertex) {
         const rayVector = new Vector(this.focus.x - vertex.x, this.focus.y - vertex.y, this.focus.z - vertex.z);
-        const ray = new Line(this.focus, rayVector);
-        const intersection = getIntersectionFromLineAndPlane(ray, this.plane);
+        const rayLine = new Line(this.focus, rayVector);
+        const intersection = getIntersectionFromLineAndPlane(rayLine, this.plane);
 
         return new Vertex(intersection.x, intersection.y, intersection.z, vertex.i);
+    }
+
+    getProjectedVertex2(vertex) {
+        /*
+        点と平面の距離を求める方程式
+        平面 ax + by + cz + d = 0
+        点 (x0, y0, z0)
+        距離 |ax0 + by0 + cz0 + d| / √(a^2 + b^2 + c^2)
+        */
+
+        const { a, b, c, d } = this.plane;
+        const { x: x0, y: y0, z: z0 } = vertex;
+
+        const lengthFromPointToPlane = abs(a * x0 + b * y0 + c * z0 + d) / sqrt(a ** 2 + b ** 2 + c ** 2);
+        const ratio = this.normalVector.length / (this.normalVector.length + lengthFromPointToPlane);
+        const vectorFromFocusToVertex = new Vector(
+            vertex.x - this.focus.x,
+            vertex.y - this.focus.y,
+            vertex.z - this.focus.z,
+        );
+        // const vectorFromFocusToProjectedVertex = vectorFromFocusToVertex.multiplication(ratio);
+        vectorFromFocusToVertex.multiplication(ratio);
+        const projectedVertex = new Vertex(
+            this.focus.x + vectorFromFocusToVertex.x,
+            this.focus.y + vectorFromFocusToVertex.y,
+            this.focus.z + vectorFromFocusToVertex.z,
+            vertex.i
+        );
+
+        return projectedVertex;
     }
 
 
@@ -150,24 +180,33 @@ class Camera {
     }
 
 
-    getToDrawVertex(vertex) {
+    getOnScreenVertex(vertex) {
         const projectedVertex = this.getProjectedVertex(vertex);
         const convertedVertex = this.getConvertedVertex(projectedVertex);
         return convertedVertex;
     }
 
 
+    getToDrawVertex(vertex) {
+        const x = (vertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
+        const y = (vertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+        return { x, y };
+    }
+
+
     draw() {
         for (const vertex of this.importedVertexes) {
-            if (this.plane.isPointInFrontOf(vertex)) {
-                const toDrawVertex = this.getToDrawVertex(vertex);
+            if (this.plane.isPointInFrontOf(vertex) === false) continue;
+            const onScreenVertex1 = this.getOnScreenVertex(vertex);
 
-                const dx = (toDrawVertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
-                const dy = (toDrawVertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-                drawCircle(con, dx | 0, dy | 0, 2.5);
-                con.fillStyle = "#fff";
-                con.fillText(toDrawVertex.i, dx, dy);
-            }
+            const toDrawVertex = this.getToDrawVertex(onScreenVertex1);
+
+            const dx = toDrawVertex.x;
+            const dy = toDrawVertex.y;
+
+            drawCircle(con, dx, dy, 2.5);
+            con.fillStyle = "#fff";
+            con.fillText(onScreenVertex1.i, dx, dy);
         }
 
         for (const edge of this.importedEdges) {
@@ -176,15 +215,18 @@ class Camera {
             const vertex1 = edge.vertex1.getClone();
             const vertex2 = edge.vertex2.getClone();
 
-            const toDrawVertex1 = this.getToDrawVertex(vertex1);
-            const toDrawVertex2 = this.getToDrawVertex(vertex2);
+            const onScreenVertex1 = this.getOnScreenVertex(vertex1);
+            const onScreenVertex2 = this.getOnScreenVertex(vertex2);
 
-            const dx1 = (toDrawVertex1.x - this.pos.x) * expandingRatio + CAN_W / 2;
-            const dy1 = (toDrawVertex1.z - this.pos.z) * -expandingRatio + CAN_H / 2;
-            const dx2 = (toDrawVertex2.x - this.pos.x) * expandingRatio + CAN_W / 2;
-            const dy2 = (toDrawVertex2.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+            const toDrawVertex1 = this.getToDrawVertex(onScreenVertex1);
+            const toDrawVertex2 = this.getToDrawVertex(onScreenVertex2);
 
-            drawLine(con, dx1 | 0, dy1 | 0, dx2 | 0, dy2 | 0);
+            const dx1 = toDrawVertex1.x;
+            const dy1 = toDrawVertex1.y;
+            const dx2 = toDrawVertex2.x;
+            const dy2 = toDrawVertex2.y;
+
+            drawLine(con, dx1, dy1, dx2, dy2);
         }
 
 
@@ -235,7 +277,7 @@ class Camera {
         if (key[" "]) this.pos.z += v;
         if (key["Shift"]) this.pos.z -= v;
 
-        const rv = 1.5;
+        const rv = 2;
         if (key["ArrowLeft"]) this.rz -= rv;
         if (key["ArrowRight"]) this.rz += rv;
         if (key["ArrowUp"]) this.rx += rv;
