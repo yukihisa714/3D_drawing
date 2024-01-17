@@ -27,6 +27,9 @@ export function min(num1, num2) {
 }
 
 
+/**
+ * ポイントのクラス
+ */
 export class Point {
     /**
      * コンストラクタ
@@ -55,6 +58,9 @@ export class Point {
     }
 }
 
+/**
+ * ベクトルのクラス
+ */
 export class Vector {
     /**
      * コンストラクタ
@@ -67,7 +73,7 @@ export class Vector {
         this.y = y;
         this.z = z;
 
-        this.length = this.getLength();
+        this.updateLength();
     }
 
     getClone() {
@@ -79,7 +85,14 @@ export class Vector {
      * @returns {number} 長さ
      */
     getLength() {
-        return Math.sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2);
+        return sqrt(this.x ** 2 + this.y ** 2 + this.z ** 2);
+    }
+
+    /**
+     * 長さを更新するメソッド
+     */
+    updateLength() {
+        this.length = this.getLength();
     }
 
     /**
@@ -90,10 +103,11 @@ export class Vector {
         this.x *= rate;
         this.y *= rate;
         this.z *= rate;
+        this.length *= rate;
     }
 
     /**
-     * 長さを変えるメソッド
+     * 指定した長さに変えるメソッド
      * @param {number} newLength 新しい長さ
      */
     changeLength(newLength) {
@@ -104,6 +118,7 @@ export class Vector {
 
     /**
      * 内積を求めるメソッド
+     * (x1, y1, z1)・(x2, y2, z2) = x1*x2 + y1*y2 + z1*z2
      * @param {Vector} vector2 もう一つのベクトル
      * @returns {number} 内積
      */
@@ -112,11 +127,15 @@ export class Vector {
     }
 }
 
+/**
+ * 直線のクラス
+ */
 export class Line {
     /**
      * 直線の方程式
      * P(x0, y0, z0)を通り、
      * V(l, m, n)に平行
+     * 媒介変数tを利用
      * x = x0 + tl
      * y = y0 + tm
      * z = z0 + tn
@@ -124,13 +143,16 @@ export class Line {
      * @param {Vector} vector 向きベクトル
      */
     constructor(point, vector) {
-        this.x0 = point.x;
-        this.y0 = point.y;
-        this.z0 = point.z;
+        this.point = point;
+        this.vector = vector;
 
-        this.l = vector.x;
-        this.m = vector.y;
-        this.n = vector.z;
+        this.x0 = this.point.x;
+        this.y0 = this.point.y;
+        this.z0 = this.point.z;
+
+        this.l = this.vector.x;
+        this.m = this.vector.y;
+        this.n = this.vector.z;
     }
 }
 
