@@ -4,7 +4,7 @@ import { Edge, Vertex } from "./shape.js";
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
 
-const expandingRatio = 256;
+const expandingRatio = 128;
 
 const CAN_W = CAMERA_W * expandingRatio;
 const CAN_H = CAMERA_H * expandingRatio;
@@ -269,13 +269,13 @@ for (let i = 0; i < vertexesList.length; i++) {
     vertexesList[i].i = i;
 }
 
-// for (let i = 0; i < 10; i++) {
-//     for (let j = 0; j < 10; j++) {
-//         for (let k = 0; k < 10; k++) {
-//             vertexesList.push(new Vertex(i, j, k, i + j + k));
-//         }
-//     }
-// }
+for (let i = 0; i < 10; i++) {
+    for (let j = 0; j < 10; j++) {
+        for (let k = 0; k < 10; k++) {
+            vertexesList.push(new Vertex(i, j, k, i + j + k));
+        }
+    }
+}
 
 
 const edgeIndexesList = [
