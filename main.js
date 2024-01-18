@@ -1,5 +1,5 @@
-import { Line, Point, Vector, abs, cos, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, sin, sqrt } from "./math.js";
-import { Edge, Vertex } from "./shape.js";
+import { Line, Point, Vector, abs, cos, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, sin, sqrt } from "./math.js";
+import { Edge, Face, Vertex } from "./shape.js";
 
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
@@ -74,14 +74,11 @@ class Camera {
 
 
     updateNormalVector() {
-        const z = sin(this.rx) * this.focalLength;
-        const y = cos(this.rz) * cos(this.rx) * this.focalLength;
-        const x = sin(this.rz) * cos(this.rx) * this.focalLength;
-
-        this.normalVector = new Vector(x, y, z);
+        this.normalVector = new Vector(0, -this.focalLength, 0);
+        this.normalVector.rotate(this.rx, this.rz);
     }
 
-    updateFocus() {
+    updateFocusPoint() {
         this.focus = new Point(
             this.pos.x - this.normalVector.x,
             this.pos.y - this.normalVector.y,
@@ -92,6 +89,33 @@ class Camera {
 
     updatePlane() {
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.pos);
+    }
+
+    updateCornerVectors() {
+        this.cornerVectors = {
+            topLeft: new Vector(-this.width / 2, 0, this.height / 2),
+            topRight: new Vector(this.width / 2, 0, this.height / 2),
+            bottomLeft: new Vector(-this.width / 2, 0, -this.height / 2),
+            bottomRight: new Vector(this.width / 2, 0, -this.height / 2),
+        }
+        this.cornerVectors.topLeft.rotate(this.rx, this.rz);
+        this.cornerVectors.topRight.rotate(this.rx, this.rz);
+        this.cornerVectors.bottomLeft.rotate(this.rx, this.rz);
+        this.cornerVectors.bottomRight.rotate(this.rx, this.rz);
+        // console.log(this.cornerVectors.topLeft);
+    }
+
+    updateCornerPoints() {
+        this.cornerPoints = {
+            topLeft: this.pos.getClone(),
+            topRight: this.pos.getClone(),
+            bottomLeft: this.pos.getClone(),
+            bottomRight: this.pos.getClone(),
+        }
+        this.cornerPoints.topLeft.move(this.cornerVectors.topLeft);
+        this.cornerPoints.topRight.move(this.cornerVectors.topRight);
+        this.cornerPoints.bottomLeft.move(this.cornerVectors.bottomLeft);
+        this.cornerPoints.bottomRight.move(this.cornerVectors.bottomRight);
     }
 
 
@@ -268,6 +292,8 @@ class Camera {
             const dy2 = edge.vertex2.y * -can2ER + can2Half;
             drawLine(con2, dx1, dy1, dx2, dy2);
         }
+
+        // console.log(this.cornerPoints.topLeft);
     }
 
 
@@ -304,7 +330,9 @@ class Camera {
     update() {
         this.move();
         this.updateNormalVector();
-        this.updateFocus();
+        this.updateCornerVectors();
+        this.updateCornerPoints();
+        this.updateFocusPoint();
         this.updatePlane();
         this.importShapes();
         this.draw();
@@ -351,20 +379,40 @@ const edgeIndexesList = [
     [3, 7],
     [4, 8],
 ];
-
 // for (let i = 19; i < 109; i++) {
 //     edgeIndexesList.push([9, i]);
 // }
 
 const edges = [];
-for (const i of edgeIndexesList) {
-    const i1 = i[0];
-    const i2 = i[1];
-    edges.push(new Edge(vertexesList[i1], vertexesList[i2]));
+for (const v of edgeIndexesList) {
+    const v1 = v[0];
+    const v2 = v[1];
+    edges.push(new Edge(vertexesList[v1], vertexesList[v2]));
 }
 console.log(edges);
+console.log(getCrossProduct(edges[0].vector, edges[1].vector));
+console.log(getCrossProduct(edges[1].vector, edges[0].vector));
 
-const camera = new Camera(new Point(0, -1, 0), 0, 0, 3, 3, 3);
+
+const faceIndexesList = [
+    [1, 2, 3],
+    [1, 5, 6],
+    [6, 7, 8],
+    [3, 4, 5],
+    [1, 4, 5],
+    [3, 6, 7],
+];
+
+const faces = [];
+for (const v of faceIndexesList) {
+    const v1 = v[0];
+    const v2 = v[1];
+    const v3 = v[2];
+    faces.push(new Face(vertexesList[v1], vertexesList[v2], vertexesList[v3],));
+}
+
+
+const camera = new Camera(new Point(0, -1, 0), 0, 0, 3, CAMERA_W, CAMERA_H);
 
 console.log(camera);
 

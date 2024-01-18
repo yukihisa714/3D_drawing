@@ -1,10 +1,11 @@
-import { Line, Plane, Point, Vector, getIntersectionFromLineAndPlane, max, min } from "./math.js";
+import { Line, Plane, Point, Vector, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, max, min } from "./math.js";
 
 
 export class Vertex extends Point {
     constructor(x, y, z, i) {
         super(x, y, z);
         this.i = i;
+        this.point = new Point(x, y, z);
     }
 
     getClone() {
@@ -68,5 +69,9 @@ export class Face {
 
         this.vector1 = new Vector(vertex2.x - vertex1.x, vertex2.y - vertex1.y, vertex2.z - vertex1.z);
         this.vector2 = new Vector(vertex3.x - vertex1.x, vertex3.y - vertex1.y, vertex3.z - vertex1.z);
+
+        this.normalVector = getCrossProduct(this.vector1, this.vector2);
+
+        this.plane = getPlaneFromVectorAndPoint(this.normalVector, vertex1.point);
     }
 }

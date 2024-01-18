@@ -116,31 +116,17 @@ export class Vector {
         this.multiplication(rate);
     }
 
-    /**
-     * 内積を求めるメソッド
-     * (x1, y1, z1)・(x2, y2, z2) = x1*x2 + y1*y2 + z1*z2
-     * @param {Vector} vector2 もう一つのベクトル
-     * @returns {number} 内積
-     */
-    getInnerProduct(vector2) {
-        return this.x * vector2.x + this.y * vector2.y + this.z * vector2.z;
+    rotate(rx, rz) {
+        const z = sin(rx) * this.z;
+        const y = cos(rz) * cos(rx) * this.length;
+        const x = sin(rz) * cos(rx) * this.length;
+        // const y = cos(rx)
+
+        this.x = x;
+        this.y = y;
+        this.z = z;
     }
 
-    /**
-     * 外積を求めるメソッド
-     * (ax, ay, az) ✕ (bx, by, bz) = (ay*bz - az*by, az*bx - ax*bz, ax*by - ay*bx)
-     * @param {Vector} vector2 もう一つのベクトル
-     * @returns {Vector} 外積
-     */
-    getCrossProduct(vector2) {
-        const a = this;
-        const b = vector2;
-        return new Vector(
-            a.y * b.z - a.z * b.y,
-            a.z * b.x - a.x * b.z,
-            a.x * b.y - a.y * b.x
-        );
-    }
 }
 
 /**
@@ -208,6 +194,35 @@ export class Plane {
         const result = this.substitute(point.x, point.y, point.z);
         return result >= 0;
     }
+}
+
+
+/**
+ * 内積を求める関数
+ * (x1, y1, z1)・(x2, y2, z2) = x1*x2 + y1*y2 + z1*z2
+ * @param {Vector} vector1 ベクトル1
+ * @param {Vector} vector2 ベクトル2
+ * @returns {number} 内積
+ */
+export function getInnerProduct(vector1, vector2) {
+    return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
+}
+
+/**
+ * 外積を求める関数
+ * (ax, ay, az) ✕ (bx, by, bz) = (ay*bz - az*by, az*bx - ax*bz, ax*by - ay*bx)
+ * @param {Vector} vector1 ベクトル1
+ * @param {Vector} vector2 ベクトル2
+ * @returns {Vector} 外積
+ */
+export function getCrossProduct(vector1, vector2) {
+    const a = vector1;
+    const b = vector2;
+    return new Vector(
+        a.y * b.z - a.z * b.y,
+        a.z * b.x - a.x * b.z,
+        a.x * b.y - a.y * b.x
+    );
 }
 
 
