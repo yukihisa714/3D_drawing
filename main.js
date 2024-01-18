@@ -4,7 +4,7 @@ import { Edge, Vertex } from "./shape.js";
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
 
-const expandingRatio = 128;
+const expandingRatio = 64;
 
 const CAN_W = CAMERA_W * expandingRatio;
 const CAN_H = CAMERA_H * expandingRatio;
@@ -18,6 +18,7 @@ const con = can.getContext("2d");
 
 const can2 = document.getElementById("canvas2");
 const con2 = can2.getContext("2d");
+
 
 const key = {};
 document.onkeydown = e => {
@@ -47,6 +48,9 @@ function drawLine(ctx, x1, y1, x2, y2) {
 }
 
 
+/**
+ * カメラのクラス
+ */
 class Camera {
     /**
      * コンストラクタ
@@ -87,7 +91,7 @@ class Camera {
 
 
     updatePlane() {
-        this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.focus);
+        this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.pos);
     }
 
 
@@ -187,19 +191,26 @@ class Camera {
     }
 
 
-    getToDrawVertex(vertex) {
-        const x = (vertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
-        const y = (vertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
+    /**
+     * 座標変換した頂点の描画位置を取得するメソッド
+     * @param {Vertex} convertedVertex 座標変換済みの頂点
+     * @returns {Object} x,y座標のみ
+     */
+    getToDrawVertex(convertedVertex) {
+        const x = (convertedVertex.x - this.pos.x) * expandingRatio + CAN_W / 2;
+        const y = (convertedVertex.z - this.pos.z) * -expandingRatio + CAN_H / 2;
         return { x, y };
     }
 
 
     draw() {
+        const toDrawVertexes = [];
         for (const vertex of this.importedVertexes) {
             if (this.plane.isPointInFrontOf(vertex) === false) continue;
             const onScreenVertex1 = this.getOnScreenVertex(vertex);
 
             const toDrawVertex = this.getToDrawVertex(onScreenVertex1);
+            toDrawVertexes[vertex.i] = toDrawVertex;
 
             const dx = toDrawVertex.x;
             const dy = toDrawVertex.y;
@@ -210,7 +221,7 @@ class Camera {
         }
 
         for (const edge of this.importedEdges) {
-            edge.correctVertexToFront(this.plane);
+            edge.setVertexInFrontOfCamera(this.plane);
             if (!this.plane.isPointInFrontOf(edge.vertex1) && !this.plane.isPointInFrontOf(edge.vertex2)) continue;
             const vertex1 = edge.vertex1.getClone();
             const vertex2 = edge.vertex2.getClone();
@@ -230,26 +241,31 @@ class Camera {
         }
 
 
-        const pdx = this.pos.x * 10 + 50;
-        const pdy = this.pos.y * -10 + 50;
+        // can2ExpandingRatio
+        const can2ER = 10;
+        // can2Half
+        const can2Half = can2.width / 2;
+
+        const pdx = this.pos.x * can2ER + can2Half;
+        const pdy = this.pos.y * -can2ER + can2Half;
         drawCircle(con2, pdx, pdy, 3);
 
-        const fdx = this.focus.x * 10 + 50;
-        const fdy = this.focus.y * -10 + 50;
+        const fdx = this.focus.x * can2ER + can2Half;
+        const fdy = this.focus.y * -can2ER + can2Half;
         drawCircle(con2, fdx, fdy, 2)
         // drawLine(con2, this.pos)
 
         for (const vertex of vertexesList) {
-            const dx = vertex.x * 10 + 50;
-            const dy = vertex.y * -10 + 50;
+            const dx = vertex.x * can2ER + can2Half;
+            const dy = vertex.y * -can2ER + can2Half;
             drawCircle(con2, dx, dy, 2.5);
         }
 
         for (const edge of edges) {
-            const dx1 = edge.vertex1.x * 10 + 50;
-            const dy1 = edge.vertex1.y * -10 + 50;
-            const dx2 = edge.vertex2.x * 10 + 50;
-            const dy2 = edge.vertex2.y * -10 + 50;
+            const dx1 = edge.vertex1.x * can2ER + can2Half;
+            const dy1 = edge.vertex1.y * -can2ER + can2Half;
+            const dx2 = edge.vertex2.x * can2ER + can2Half;
+            const dy2 = edge.vertex2.y * -can2ER + can2Half;
             drawLine(con2, dx1, dy1, dx2, dy2);
         }
     }
@@ -307,16 +323,17 @@ const vertexesList = [
     new Vertex(-1, 4, -1),
     new Vertex(-1, 4, 1),
 ];
+
+// for (let i = 0; i < 10; i++) {
+//     for (let j = 0; j < 10; j++) {
+//         for (let k = 0; k < 1; k++) {
+//             vertexesList.push(new Vertex(i, j, k));
+//         }
+//     }
+// }
+
 for (let i = 0; i < vertexesList.length; i++) {
     vertexesList[i].i = i;
-}
-
-for (let i = 0; i < 10; i++) {
-    for (let j = 0; j < 10; j++) {
-        for (let k = 0; k < 10; k++) {
-            vertexesList.push(new Vertex(i, j, k, i + j + k));
-        }
-    }
 }
 
 
@@ -334,6 +351,10 @@ const edgeIndexesList = [
     [3, 7],
     [4, 8],
 ];
+
+// for (let i = 19; i < 109; i++) {
+//     edgeIndexesList.push([9, i]);
+// }
 
 const edges = [];
 for (const i of edgeIndexesList) {

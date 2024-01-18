@@ -202,9 +202,7 @@ export class Plane {
 export function getPlaneFromVectorAndPoint(normalVector, point) {
     const { x: a, y: b, z: c } = normalVector;
 
-    const x0 = point.x + a;
-    const y0 = point.y + b;
-    const z0 = point.z + c;
+    const { x: x0, y: y0, z: z0 } = point;
 
     const d = - (a * x0 + b * y0 + c * z0);
 

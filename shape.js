@@ -27,11 +27,11 @@ export class Edge {
     }
 
     /**
-     * 
+     * 辺と平面の交点が辺上にあるかチェックするメソッド
      * @param {Plane} plane 
      * @returns {Boolean}
      */
-    isIntersectionOnEdge(plane) {
+    checkEdgePlaneIntersection(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
         return (
             intersection.x >= this.min.x &&
@@ -44,12 +44,12 @@ export class Edge {
     }
 
     /**
-     * 
+     * 辺が(カメラ)平面と交差しているとき平面の後ろの頂点を平面上に移動するメソッド
      * @param {Plane} plane 
      */
-    correctVertexToFront(plane) {
+    setVertexInFrontOfCamera(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
-        if (this.isIntersectionOnEdge(plane)) {
+        if (this.checkEdgePlaneIntersection(plane)) {
             if (!plane.isPointInFrontOf(this.vertex1)) {
                 this.vertex1 = new Vertex(intersection.x, intersection.y, intersection.z);
             }
