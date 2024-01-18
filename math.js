@@ -125,6 +125,22 @@ export class Vector {
     getInnerProduct(vector2) {
         return this.x * vector2.x + this.y * vector2.y + this.z * vector2.z;
     }
+
+    /**
+     * 外積を求めるメソッド
+     * (ax, ay, az) ✕ (bx, by, bz) = (ay*bz - az*by, az*bx - ax*bz, ax*by - ay*bx)
+     * @param {Vector} vector2 もう一つのベクトル
+     * @returns {Vector} 外積
+     */
+    getCrossProduct(vector2) {
+        const a = this;
+        const b = vector2;
+        return new Vector(
+            a.y * b.z - a.z * b.y,
+            a.z * b.x - a.x * b.z,
+            a.x * b.y - a.y * b.x
+        );
+    }
 }
 
 /**
@@ -192,6 +208,11 @@ export class Plane {
         const result = this.substitute(point.x, point.y, point.z);
         return result >= 0;
     }
+}
+
+
+export function getNormalVectorFromTwoVectors(vector1, vector2) {
+
 }
 
 /**

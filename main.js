@@ -364,7 +364,6 @@ for (const i of edgeIndexesList) {
 }
 console.log(edges);
 
-
 const camera = new Camera(new Point(0, -1, 0), 0, 0, 3, 3, 3);
 
 console.log(camera);

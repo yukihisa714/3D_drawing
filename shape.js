@@ -59,3 +59,14 @@ export class Edge {
         }
     }
 }
+
+export class Face {
+    constructor(vertex1, vertex2, vertex3) {
+        this.vertex1 = vertex1;
+        this.vertex2 = vertex2;
+        this.vertex3 = vertex3;
+
+        this.vector1 = new Vector(vertex2.x - vertex1.x, vertex2.y - vertex1.y, vertex2.z - vertex1.z);
+        this.vector2 = new Vector(vertex3.x - vertex1.x, vertex3.y - vertex1.y, vertex3.z - vertex1.z);
+    }
+}
