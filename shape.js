@@ -74,4 +74,8 @@ export class Face {
 
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, vertex1.point);
     }
+
+    getClone() {
+        return new Face(this.vertex1.getClone(), this.vertex2.getClone(), this.vertex3.getClone());
+    }
 }

@@ -49,12 +49,16 @@ export class Point {
 
     /**
      * 点をベクトルに従って動かすメソッド
+     * 自身の要素を変更し、更に新しいPointクラスを返す
      * @param {Vector} vector 移動ベクトル
+     * @returns {Point}
      */
     move(vector) {
         this.x += vector.x;
         this.y += vector.y;
         this.z += vector.z;
+
+        return this.getClone();
     }
 }
 
@@ -97,13 +101,17 @@ export class Vector {
 
     /**
      * 乗算
+     * 自身を乗算し、更に新しいVectorクラスを返す
      * @param {number} rate かける数
+     * @returns {Vector}
      */
     multiplication(rate) {
         this.x *= rate;
         this.y *= rate;
         this.z *= rate;
         this.length *= rate;
+
+        return this.getClone();
     }
 
     /**
@@ -116,6 +124,13 @@ export class Vector {
         this.multiplication(rate);
     }
 
+    /**
+     * ベクトルを回転するメソッド
+     * 自身を回転し、更に新しいVectorクラスを返す
+     * @param {number} rx x軸を中心にした回転
+     * @param {number} rz y軸を中心にした回転
+     * @returns 
+     */
     rotate(rx, rz) {
         /*
         X = xcosθ - ysinθ
@@ -136,6 +151,8 @@ export class Vector {
         this.x = x2;
         this.y = y2;
         this.z = z2;
+
+        return this.getClone();
     }
 
 }
@@ -205,6 +222,16 @@ export class Plane {
         const result = this.substitute(point.x, point.y, point.z);
         return result >= 0;
     }
+}
+
+/**
+ * ２つのベクトルの和を取得する関数
+ * @param {Vector} vector1 
+ * @param {Vector} vector2 
+ * @returns {Vector}
+ */
+export function getSumOf2Vectors(vector1, vector2) {
+    return new Vector(vector1.x + vector2.x, vector1.y + vector2.y, vector1.z + vector2.z);
 }
 
 

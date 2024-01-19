@@ -1,10 +1,10 @@
-import { Line, Point, Vector, cos, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getVectorFrom2Points, sin, sqrt } from "./math.js";
+import { Line, Point, Vector, cos, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin, sqrt } from "./math.js";
 import { Edge, Face, Vertex } from "./shape.js";
 
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
 
-const expandingRatio = 64;
+const expandingRatio = 50;
 
 const CAN_W = CAMERA_W * expandingRatio;
 const CAN_H = CAMERA_H * expandingRatio;
@@ -70,12 +70,14 @@ class Camera {
         this.height = height;
 
         this.update();
+
+        this.updateViewLayVectorsFromFocus();
+        this.updateViewLayLines();
     }
 
 
     updateNormalVector() {
-        this.normalVector = new Vector(0, this.focalLength, 0);
-        this.normalVector.rotate(this.rx, this.rz);
+        this.normalVector = new Vector(0, this.focalLength, 0).rotate(this.rx, this.rz);
     }
 
     updateFocusPoint() {
@@ -91,37 +93,76 @@ class Camera {
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.pos);
     }
 
-    updateCornerVectors() {
+    updateCornerVectorsFromPas() {
         this.cornerVectorsFromPos = {
             topLeft: new Vector(-this.width / 2, 0, this.height / 2),
             topRight: new Vector(this.width / 2, 0, this.height / 2),
             bottomLeft: new Vector(-this.width / 2, 0, -this.height / 2),
             bottomRight: new Vector(this.width / 2, 0, -this.height / 2),
         }
-        this.cornerVectorsFromPos.topLeft.rotate(this.rx, this.rz);
-        this.cornerVectorsFromPos.topRight.rotate(this.rx, this.rz);
-        this.cornerVectorsFromPos.bottomLeft.rotate(this.rx, this.rz);
-        this.cornerVectorsFromPos.bottomRight.rotate(this.rx, this.rz);
-        // console.log(this.cornerVectors.topLeft);
+        for (const key in this.cornerVectorsFromPos) {
+            this.cornerVectorsFromPos[key].rotate(this.rx, this.rz);
+        }
     }
 
     updateCornerPoints() {
         this.cornerPoints = {
-            topLeft: this.pos.getClone(),
-            topRight: this.pos.getClone(),
-            bottomLeft: this.pos.getClone(),
-            bottomRight: this.pos.getClone(),
+            topLeft: this.pos.getClone().move(this.cornerVectorsFromPos.topLeft),
+            topRight: this.pos.getClone().move(this.cornerVectorsFromPos.topRight),
+            bottomLeft: this.pos.getClone().move(this.cornerVectorsFromPos.bottomLeft),
+            bottomRight: this.pos.getClone().move(this.cornerVectorsFromPos.bottomRight),
         }
-        this.cornerPoints.topLeft.move(this.cornerVectorsFromPos.topLeft);
-        this.cornerPoints.topRight.move(this.cornerVectorsFromPos.topRight);
-        this.cornerPoints.bottomLeft.move(this.cornerVectorsFromPos.bottomLeft);
-        this.cornerPoints.bottomRight.move(this.cornerVectorsFromPos.bottomRight);
     }
 
+
+    updateViewLayVectorsFromFocus() {
+        const st = performance.now();
+
+        const cameraPlaneVectorToRight = getVectorFrom2Points(this.cornerPoints.topLeft, this.cornerPoints.topRight);
+        const cameraPlaneVectorToBottom = getVectorFrom2Points(this.cornerPoints.topLeft, this.cornerPoints.bottomLeft);
+
+        const cameraPixelVectorToRight = cameraPlaneVectorToRight.multiplication(1 / CAN_W);
+        const cameraPixelVectorToBottom = cameraPlaneVectorToBottom.multiplication(1 / CAN_H);
+
+        this.viewLayVectorsFromFocus = [];
+        for (let y = 0; y < CAN_H; y++) {
+            this.viewLayVectorsFromFocus[y] = [];
+            const cameraVectorToBottomPixel = cameraPixelVectorToBottom.getClone().multiplication(y);
+            for (let x = 0; x < CAN_W; x++) {
+                const cameraVectorToRightPixel = cameraPixelVectorToRight.getClone().multiplication(x);
+                const cameraVectorFromTopLeftToPixel = getSumOf2Vectors(cameraVectorToBottomPixel, cameraVectorToRightPixel);
+                const cameraPixelVectorFromFocus = getSumOf2Vectors(this.cornerVectorsFromPos.topLeft, cameraVectorFromTopLeftToPixel);
+                this.viewLayVectorsFromFocus[y][x] = cameraPixelVectorFromFocus;
+            }
+        }
+
+        const et = performance.now();
+
+        console.log(this.viewLayVectorsFromFocus);
+        console.log(et - st);
+    }
+
+    updateViewLayLines() {
+        const st = performance.now();
+
+        this.viewLayLines = [];
+        for (let y = 0; y < CAN_H; y++) {
+            this.viewLayLines[y] = [];
+            for (let x = 0; x < CAN_W; x++) {
+                this.viewLayLines[y][x] = new Line(this.focus, this.viewLayVectorsFromFocus[y][x])
+            }
+        }
+
+        const et = performance.now();
+
+        console.log(this.viewLayLines);
+        console.log(et - st);
+    }
 
     importShapes() {
         this.importedVertexes = vertexesList.map(vertex => vertex.getClone());
         this.importedEdges = edges.map(edge => edge.getClone());
+        this.importedFaces = faces.map(face => face.getClone());
     }
 
 
@@ -306,7 +347,7 @@ class Camera {
     update() {
         this.move();
         this.updateNormalVector();
-        this.updateCornerVectors();
+        this.updateCornerVectorsFromPas();
         this.updateCornerPoints();
         this.updateFocusPoint();
         this.updatePlane();
