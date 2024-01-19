@@ -115,12 +115,17 @@ class Camera {
     }
 
 
+    /**
+     * 焦点からカメラの全ピクセルへのベクトルを更新するメソッド
+     */
     updateViewLayVectorsFromFocus() {
         const st = performance.now();
 
+        // カメラの左上から右上又は左下へのベクトル
         const cameraPlaneVectorToRight = getVectorFrom2Points(this.cornerPoints.topLeft, this.cornerPoints.topRight);
         const cameraPlaneVectorToBottom = getVectorFrom2Points(this.cornerPoints.topLeft, this.cornerPoints.bottomLeft);
 
+        // カメラの1px単位のベクトル
         const cameraPixelVectorToRight = cameraPlaneVectorToRight.multiplication(1 / CAN_W);
         const cameraPixelVectorToBottom = cameraPlaneVectorToBottom.multiplication(1 / CAN_H);
 
@@ -130,7 +135,9 @@ class Camera {
             const cameraVectorToBottomPixel = cameraPixelVectorToBottom.getClone().multiplication(y);
             for (let x = 0; x < CAN_W; x++) {
                 const cameraVectorToRightPixel = cameraPixelVectorToRight.getClone().multiplication(x);
+                // カメラの左上から特定のピクセルへのベクトル
                 const cameraVectorFromTopLeftToPixel = getSumOf2Vectors(cameraVectorToBottomPixel, cameraVectorToRightPixel);
+                // 焦点から特定のピクセルへのベクトル
                 const cameraPixelVectorFromFocus = getSumOf2Vectors(this.cornerVectorsFromPos.topLeft, cameraVectorFromTopLeftToPixel);
                 this.viewLayVectorsFromFocus[y][x] = cameraPixelVectorFromFocus;
             }
@@ -142,6 +149,9 @@ class Camera {
         console.log(et - st);
     }
 
+    /**
+     * 焦点からカメラの全ピクセルへの直線を更新するメソッド
+     */
     updateViewLayLines() {
         const st = performance.now();
 
