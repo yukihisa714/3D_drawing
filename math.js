@@ -129,14 +129,13 @@ export class Vector {
         const y1 = cos(rx) * this.y - sin(rx) * this.z;
         const z1 = sin(rx) * this.y + cos(rx) * this.z;
 
-        const x2 = cos(rz) * x1 - sin(rz) * y1;
-        const y2 = sin(rz) * x1 + cos(rz) * y1;
+        const x2 = cos(-rz) * x1 - sin(-rz) * y1;
+        const y2 = sin(-rz) * x1 + cos(-rz) * y1;
         const z2 = z1;
 
-        this.x = -x2;
+        this.x = x2;
         this.y = y2;
         this.z = z2;
-
     }
 
 }
@@ -237,10 +236,15 @@ export function getCrossProduct(vector1, vector2) {
     );
 }
 
-
-export function getNormalVectorFromTwoVectors(vector1, vector2) {
-
+/**
+ * 二点間を結ぶベクトルを取得する関数
+ * @param {Point} point1 始点
+ * @param {Point} point2 終点
+ */
+export function getVectorFrom2Points(point1, point2) {
+    return new Vector(point2.x - point1.x, point2.y - point1.y, point2.z - point1.z);
 }
+
 
 /**
  * 法線ベクトルとそのベクトルを通る一点から平面のクラスを取得する関数

@@ -1,4 +1,4 @@
-import { Line, Point, Vector, abs, cos, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, sin, sqrt } from "./math.js";
+import { Line, Point, Vector, cos, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getVectorFrom2Points, sin, sqrt } from "./math.js";
 import { Edge, Face, Vertex } from "./shape.js";
 
 const CAMERA_W = 3.2;
@@ -92,16 +92,16 @@ class Camera {
     }
 
     updateCornerVectors() {
-        this.cornerVectors = {
+        this.cornerVectorsFromPos = {
             topLeft: new Vector(-this.width / 2, 0, this.height / 2),
             topRight: new Vector(this.width / 2, 0, this.height / 2),
             bottomLeft: new Vector(-this.width / 2, 0, -this.height / 2),
             bottomRight: new Vector(this.width / 2, 0, -this.height / 2),
         }
-        this.cornerVectors.topLeft.rotate(this.rx, this.rz);
-        this.cornerVectors.topRight.rotate(this.rx, this.rz);
-        this.cornerVectors.bottomLeft.rotate(this.rx, this.rz);
-        this.cornerVectors.bottomRight.rotate(this.rx, this.rz);
+        this.cornerVectorsFromPos.topLeft.rotate(this.rx, this.rz);
+        this.cornerVectorsFromPos.topRight.rotate(this.rx, this.rz);
+        this.cornerVectorsFromPos.bottomLeft.rotate(this.rx, this.rz);
+        this.cornerVectorsFromPos.bottomRight.rotate(this.rx, this.rz);
         // console.log(this.cornerVectors.topLeft);
     }
 
@@ -112,10 +112,10 @@ class Camera {
             bottomLeft: this.pos.getClone(),
             bottomRight: this.pos.getClone(),
         }
-        this.cornerPoints.topLeft.move(this.cornerVectors.topLeft);
-        this.cornerPoints.topRight.move(this.cornerVectors.topRight);
-        this.cornerPoints.bottomLeft.move(this.cornerVectors.bottomLeft);
-        this.cornerPoints.bottomRight.move(this.cornerVectors.bottomRight);
+        this.cornerPoints.topLeft.move(this.cornerVectorsFromPos.topLeft);
+        this.cornerPoints.topRight.move(this.cornerVectorsFromPos.topRight);
+        this.cornerPoints.bottomLeft.move(this.cornerVectorsFromPos.bottomLeft);
+        this.cornerPoints.bottomRight.move(this.cornerVectorsFromPos.bottomRight);
     }
 
 
@@ -131,41 +131,11 @@ class Camera {
      * @returns {Vertex} カメラ平面上の点
      */
     getProjectedVertex(vertex) {
-        const rayVector = new Vector(this.focus.x - vertex.x, this.focus.y - vertex.y, this.focus.z - vertex.z);
+        const rayVector = getVectorFrom2Points(vertex, this.focus);
         const rayLine = new Line(this.focus, rayVector);
         const intersection = getIntersectionFromLineAndPlane(rayLine, this.plane);
 
         return new Vertex(intersection.x, intersection.y, intersection.z, vertex.i);
-    }
-
-    getProjectedVertex2(vertex) {
-        /*
-        点と平面の距離を求める方程式
-        平面 ax + by + cz + d = 0
-        点 (x0, y0, z0)
-        距離 |ax0 + by0 + cz0 + d| / √(a^2 + b^2 + c^2)
-        */
-
-        const { a, b, c, d } = this.plane;
-        const { x: x0, y: y0, z: z0 } = vertex;
-
-        const lengthFromPointToPlane = abs(a * x0 + b * y0 + c * z0 + d) / sqrt(a ** 2 + b ** 2 + c ** 2);
-        const ratio = this.normalVector.length / (this.normalVector.length + lengthFromPointToPlane);
-        const vectorFromFocusToVertex = new Vector(
-            vertex.x - this.focus.x,
-            vertex.y - this.focus.y,
-            vertex.z - this.focus.z,
-        );
-        // const vectorFromFocusToProjectedVertex = vectorFromFocusToVertex.multiplication(ratio);
-        vectorFromFocusToVertex.multiplication(ratio);
-        const projectedVertex = new Vertex(
-            this.focus.x + vectorFromFocusToVertex.x,
-            this.focus.y + vectorFromFocusToVertex.y,
-            this.focus.z + vectorFromFocusToVertex.z,
-            vertex.i
-        );
-
-        return projectedVertex;
     }
 
 
@@ -175,7 +145,7 @@ class Camera {
      * @returns {Vertex} 座標変換後の座標
      */
     getConvertedVertex(vertex) {
-        const vectorFromCamPos = new Vector(vertex.x - this.pos.x, vertex.y - this.pos.y, vertex.z - this.pos.z);
+        const vectorFromCamPos = getVectorFrom2Points(this.pos, vertex);
 
         /*
         X = xcosθ - ysinθ
@@ -278,6 +248,12 @@ class Camera {
         const fdy = this.focus.y * -can2ER + can2Half;
         drawCircle(con2, fdx, fdy, 2)
         // drawLine(con2, this.pos)
+
+        for (const key in this.cornerPoints) {
+            const cdx = this.cornerPoints[key].x * can2ER + can2Half;
+            const cdy = this.cornerPoints[key].y * -can2ER + can2Half;
+            drawCircle(con2, cdx, cdy, 1);
+        }
 
         for (const vertex of vertexesList) {
             const dx = vertex.x * can2ER + can2Half;

@@ -1,4 +1,4 @@
-import { Line, Plane, Point, Vector, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, max, min } from "./math.js";
+import { Line, Plane, Point, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getVectorFrom2Points, max, min } from "./math.js";
 
 
 export class Vertex extends Point {
@@ -17,7 +17,7 @@ export class Edge {
     constructor(vertex1, vertex2) {
         this.vertex1 = vertex1;
         this.vertex2 = vertex2;
-        this.vector = new Vector(vertex2.x - vertex1.x, vertex2.y - vertex1.y, vertex2.z - vertex1.z,);
+        this.vector = getVectorFrom2Points(this.vertex1, this.vertex2);
         this.line = new Line(vertex1, this.vector);
         this.min = new Point(min(vertex1.x, vertex2.x), min(vertex1.y, vertex2.y), min(vertex1.z, vertex2.z));
         this.max = new Point(max(vertex1.x, vertex2.x), max(vertex1.y, vertex2.y), max(vertex1.z, vertex2.z));
@@ -67,8 +67,8 @@ export class Face {
         this.vertex2 = vertex2;
         this.vertex3 = vertex3;
 
-        this.vector1 = new Vector(vertex2.x - vertex1.x, vertex2.y - vertex1.y, vertex2.z - vertex1.z);
-        this.vector2 = new Vector(vertex3.x - vertex1.x, vertex3.y - vertex1.y, vertex3.z - vertex1.z);
+        this.vector1 = getVectorFrom2Points(this.vertex1, vertex2);
+        this.vector2 = getVectorFrom2Points(this.vertex1, vertex3);
 
         this.normalVector = getCrossProduct(this.vector1, this.vector2);
 
