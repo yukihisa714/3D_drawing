@@ -74,7 +74,7 @@ class Camera {
 
 
     updateNormalVector() {
-        this.normalVector = new Vector(0, -this.focalLength, 0);
+        this.normalVector = new Vector(0, this.focalLength, 0);
         this.normalVector.rotate(this.rx, this.rz);
     }
 

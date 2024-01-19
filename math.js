@@ -117,14 +117,26 @@ export class Vector {
     }
 
     rotate(rx, rz) {
-        const z = sin(rx) * this.z;
-        const y = cos(rz) * cos(rx) * this.length;
-        const x = sin(rz) * cos(rx) * this.length;
-        // const y = cos(rx)
+        /*
+        X = xcosθ - ysinθ
+        Y = xsinθ + ycosθ
 
-        this.x = x;
-        this.y = y;
-        this.z = z;
+        Y = ycosθ - zsinθ
+        Z = ysinθ + zcosθ
+        */
+
+        const x1 = this.x;
+        const y1 = cos(rx) * this.y - sin(rx) * this.z;
+        const z1 = sin(rx) * this.y + cos(rx) * this.z;
+
+        const x2 = cos(rz) * x1 - sin(rz) * y1;
+        const y2 = sin(rz) * x1 + cos(rz) * y1;
+        const z2 = z1;
+
+        this.x = -x2;
+        this.y = y2;
+        this.z = z2;
+
     }
 
 }
