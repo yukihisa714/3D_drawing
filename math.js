@@ -26,6 +26,10 @@ export function min(num1, num2) {
     return Math.min(num1, num2);
 }
 
+export function convert0ToLim0(num) {
+    if (num === 0) return cos(Math.PI / 2);
+    else return num;
+}
 
 /**
  * ポイントのクラス

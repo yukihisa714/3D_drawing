@@ -73,6 +73,7 @@ class Camera {
 
         this.updateViewLayVectorsFromFocus();
         this.updateViewLayLines();
+        this.updateIntersectionFromViewLaysAndFaces();
     }
 
 
@@ -167,6 +168,33 @@ class Camera {
 
         console.log(this.viewLayLines);
         console.log(et - st);
+    }
+
+    updateIntersectionFromViewLaysAndFaces() {
+        this.intersectionsFromViwLaysAndFaces = [];
+        for (let y = 0; y < CAN_H; y++) {
+            this.intersectionsFromViwLaysAndFaces[y] = [];
+            for (let x = 0; x < CAN_W; x++) {
+                this.intersectionsFromViwLaysAndFaces[y][x] = [];
+                for (const face of this.importedFaces) {
+                    const intersectionFromViwLayAndPlane
+                        = getIntersectionFromLineAndPlane(this.viewLayLines[y][x], face.plane);
+                    if (face.checkPointOnFace(intersectionFromViwLayAndPlane)) {
+                        this.intersectionsFromViwLaysAndFaces[y][x].push(intersectionFromViwLayAndPlane);
+                        console.log(1);
+                    }
+                }
+            }
+        }
+        let IFVLAF = [];
+        for (let y = 0; y < CAN_H; y++) {
+            IFVLAF[y] = []
+            for (let x = 0; x < CAN_W; x++) {
+                IFVLAF[y][x] = this.intersectionsFromViwLaysAndFaces[y][x].length;
+            }
+        }
+
+        console.log(IFVLAF);
     }
 
     importShapes() {
@@ -435,8 +463,9 @@ for (const v of faceIndexesList) {
     const v1 = v[0];
     const v2 = v[1];
     const v3 = v[2];
-    faces.push(new Face(vertexesList[v1], vertexesList[v2], vertexesList[v3],));
+    faces.push(new Face(vertexesList[v1], vertexesList[v2], vertexesList[v3]));
 }
+// console.log(faces[0].checkPointOnFace(new Point(0, 2, -0.5)));
 
 
 const camera = new Camera(new Point(0, -1, 0), 0, 0, 3, CAMERA_W, CAMERA_H);

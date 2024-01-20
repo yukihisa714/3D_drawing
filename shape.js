@@ -1,4 +1,4 @@
-import { Line, Plane, Point, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getVectorFrom2Points, max, min } from "./math.js";
+import { Line, Plane, Point, convert0ToLim0, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getVectorFrom2Points, max, min } from "./math.js";
 
 
 export class Vertex extends Point {
@@ -77,5 +77,55 @@ export class Face {
 
     getClone() {
         return new Face(this.vertex1.getClone(), this.vertex2.getClone(), this.vertex3.getClone());
+    }
+
+    /**
+     * 頂点が面の中にあるかチェックするメソッド
+     * 頂点が面を含む平面上にあることが条件
+     * @param {Point} point 
+     * @returns {boolean}
+     */
+    checkPointOnFace(point) {
+        /**
+         * a→ = (ax, ay, az)
+         * b→ = (bx, by, bz)
+         * p→ = (px, py, pz)
+         * 
+         * p が a,bを含む平面上にあるとき、存在条件はx,yのみでいい
+         * 
+         * (s>=0, t>=0, s+t<=1)
+         * 
+         * px = s*ax + t*bx
+         * py = s*zy + t*by
+         * 
+         * px*ay = s*ax*ay + t*bx*ay
+         * py*ax = s*ax*ay + t*by*ax
+         * 
+         * px*ay - py*ax = t*bx*ay - t*by*ax
+         * t = (px*ay - py*ax) / (bx*ay - by*ax)
+         * s = (px - t*bx) / ax
+         * s = (py - t*by) / ay
+         */
+
+        const a = this.vector1;
+        const b = this.vector2;
+        const p = getVectorFrom2Points(this.vertex1, point);
+
+        a.x = convert0ToLim0(a.x);
+        a.y = convert0ToLim0(a.y);
+        a.z = convert0ToLim0(a.z);
+
+        b.x = convert0ToLim0(b.x);
+        b.y = convert0ToLim0(b.y);
+        b.z = convert0ToLim0(b.z);
+
+        p.x = convert0ToLim0(p.x);
+        p.y = convert0ToLim0(p.y);
+        p.z = convert0ToLim0(p.z);
+
+        const t = (p.x * a.y - p.y * a.x) / (b.x * a.y - b.y * a.x);
+        const s = (p.x - t * b.x) / a.x;
+
+        return (s >= 0 && t >= 0 && s + t <= 1);
     }
 }
