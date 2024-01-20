@@ -186,6 +186,7 @@ class Camera {
                 }
             }
         }
+        console.log(this.intersectionsFromViwLaysAndFaces);
         let IFVLAF = [];
         for (let y = 0; y < CAN_H; y++) {
             IFVLAF[y] = []
@@ -465,7 +466,7 @@ for (const v of faceIndexesList) {
     const v3 = v[2];
     faces.push(new Face(vertexesList[v1], vertexesList[v2], vertexesList[v3]));
 }
-// console.log(faces[0].checkPointOnFace(new Point(0, 2, -0.5)));
+console.log(faces[0].checkPointOnFace(new Point(0, 1.999999999, -0.5)));
 
 
 const camera = new Camera(new Point(0, -1, 0), 0, 0, 3, CAMERA_W, CAMERA_H);
