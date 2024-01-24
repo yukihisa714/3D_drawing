@@ -212,7 +212,7 @@ class Camera {
         this.updateViewLayVectorsFromFocus();
         this.updateViewLayLines();
         this.updateIntersectionFromViewLaysAndFaces();
-        this.drawPixels(con);
+        this.drawPixels(con3);
     }
 
     importShapes() {
@@ -512,6 +512,7 @@ function mainLoop() {
 
     con.clearRect(0, 0, CAN_W, CAN_H);
     con2.clearRect(0, 0, 100, 100);
+    con3.clearRect(0, 0, CAN_W, CAN_H);
 
     camera.update();
 
