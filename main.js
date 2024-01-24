@@ -1,4 +1,4 @@
-import { Line, Point, Vector, cos, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin, sqrt } from "./math.js";
+import { Line, Point, Vector, cos, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin } from "./math.js";
 import { Edge, Face, Vertex } from "./shape.js";
 
 const CAMERA_W = 3.2;
@@ -173,13 +173,16 @@ class Camera {
                 for (const face of this.importedFaces) {
                     const intersectionFromViewLayAndPlane
                         = getIntersectionFromLineAndPlane(this.viewLayLines[y][x], face.plane);
-                    if (face.checkPointOnFace(intersectionFromViewLayAndPlane)) {
-                        this.intersectionsFromViewLaysAndFaces[y][x].push({
-                            intersection: intersectionFromViewLayAndPlane,
-                            length: getLengthFrom2Points(this.focus, intersectionFromViewLayAndPlane),
-                            face: face,
-                        });
-                    }
+                    // 交点がカメラの背面にあるときcontinue
+                    if (this.plane.isPointInFrontOf(intersectionFromViewLayAndPlane) === false) continue;
+                    // 交点が面上にないとき(面からはみ出しているとき)continue
+                    if (face.checkPointOnFace(intersectionFromViewLayAndPlane) === false) continue;
+                    this.intersectionsFromViewLaysAndFaces[y][x].push({
+                        intersection: intersectionFromViewLayAndPlane,
+                        length: getLengthFrom2Points(this.focus, intersectionFromViewLayAndPlane),
+                        face: face,
+                    });
+
                 }
             }
         }
@@ -191,11 +194,13 @@ class Camera {
             for (let x = 0; x < CAN_W; x++) {
                 const pixelInfo = this.intersectionsFromViewLaysAndFaces[y][x];
                 if (pixelInfo.length) {
+                    // lengthの値に注目して昇順にソート
                     pixelInfo.sort((a, b) => {
                         if (a.length < b.length) return -1;
                         if (a.length > b.length) return 1;
                         return 0;
                     });
+                    // 昇順の先頭(カメラから一番近い交点)の色を設定
                     ctx.fillStyle = pixelInfo[0].face.color;
                     ctx.fillRect(x, y, 1, 1);
                 }
@@ -447,6 +452,13 @@ const edgeIndexesList = [
     [2, 6],
     [3, 7],
     [4, 8],
+
+    // [1, 3],
+    // [1, 6],
+    // [5, 7],
+    // [3, 8],
+    // [4, 5],
+    // [3, 6],
 ];
 // for (let i = 19; i < 109; i++) {
 //     edgeIndexesList.push([9, i]);
