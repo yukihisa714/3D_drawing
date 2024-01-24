@@ -26,9 +26,16 @@ export function min(num1, num2) {
     return Math.min(num1, num2);
 }
 
-export function convert0ToLim0(num) {
-    if (num === 0) return cos(Math.PI / 2);
-    else return num;
+/**
+ * 数字を要素に持つ配列からNaNとInfinity意外の数字を返す関数
+ * 配列に返すべき数字が複数あった場合、indexが小さいものを一つ返す
+ * @param {Array} nums number型を要素に持つ配列
+ */
+export function getNotInfinityAndNaN(nums) {
+    for (const num of nums) {
+        if (isFinite(num) || isNaN(num)) continue;
+        return num;
+    }
 }
 
 /**
@@ -271,16 +278,27 @@ export function getCrossProduct(vector1, vector2) {
  * 二点間を結ぶベクトルを取得する関数
  * @param {Point} point1 始点
  * @param {Point} point2 終点
+ * @returns {Vector}
  */
 export function getVectorFrom2Points(point1, point2) {
     return new Vector(point2.x - point1.x, point2.y - point1.y, point2.z - point1.z);
 }
-console.log(getVectorFrom2Points(new Point(1, 2, 1), new Point(1, 2, -1)));
+
+/**
+ * 二点間の距離を取得する関数
+ * @param {Point} point1 始点
+ * @param {Point} point2 終点
+ * @returns {number} 距離
+ */
+export function getLengthFrom2Points(point1, point2) {
+    return getVectorFrom2Points(point1, point2).getLength();
+}
 
 /**
  * 法線ベクトルとそのベクトルを通る一点から平面のクラスを取得する関数
  * @param {Vector} normalVector 法線ベクトル
  * @param {Point} point ポイント
+ * @returns {Plane}
  */
 export function getPlaneFromVectorAndPoint(normalVector, point) {
     const { x: a, y: b, z: c } = normalVector;
@@ -297,6 +315,7 @@ export function getPlaneFromVectorAndPoint(normalVector, point) {
  * 直線と平面の交点を求める関数
  * @param {Line} line 直線
  * @param {Plane} plane 平面
+ * @returns {Point}
  */
 export function getIntersectionFromLineAndPlane(line, plane) {
     /*

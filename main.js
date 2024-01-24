@@ -1,4 +1,4 @@
-import { Line, Point, Vector, cos, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin, sqrt } from "./math.js";
+import { Line, Point, Vector, cos, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin, sqrt } from "./math.js";
 import { Edge, Face, Vertex } from "./shape.js";
 
 const CAMERA_W = 3.2;
@@ -18,6 +18,13 @@ const con = can.getContext("2d");
 
 const can2 = document.getElementById("canvas2");
 const con2 = can2.getContext("2d");
+
+const can3 = document.getElementById("canvas3");
+can3.width = CAN_W;
+can3.height = CAN_H;
+can3.style.background = "#888";
+
+const con3 = can3.getContext("2d");
 
 
 const key = {};
@@ -71,9 +78,6 @@ class Camera {
 
         this.update();
 
-        this.updateViewLayVectorsFromFocus();
-        this.updateViewLayLines();
-        this.updateIntersectionFromViewLaysAndFaces();
     }
 
 
@@ -120,8 +124,6 @@ class Camera {
      * 焦点からカメラの全ピクセルへのベクトルを更新するメソッド
      */
     updateViewLayVectorsFromFocus() {
-        const st = performance.now();
-
         // カメラの左上から右上又は左下へのベクトル
         const cameraPlaneVectorToRight = getVectorFrom2Points(this.cornerPoints.topLeft, this.cornerPoints.topRight);
         const cameraPlaneVectorToBottom = getVectorFrom2Points(this.cornerPoints.topLeft, this.cornerPoints.bottomLeft);
@@ -145,19 +147,13 @@ class Camera {
                 this.viewLayVectorsFromFocus[y][x] = cameraPixelVectorFromFocus;
             }
         }
-
-        const et = performance.now();
-
         // console.log(this.viewLayVectorsFromFocus);
-        console.log(et - st);
     }
 
     /**
      * 焦点からカメラの全ピクセルへの直線を更新するメソッド
      */
     updateViewLayLines() {
-        const st = performance.now();
-
         this.viewLayLines = [];
         for (let y = 0; y < CAN_H; y++) {
             this.viewLayLines[y] = [];
@@ -165,11 +161,7 @@ class Camera {
                 this.viewLayLines[y][x] = new Line(this.focus, this.viewLayVectorsFromFocus[y][x])
             }
         }
-
-        const et = performance.now();
-
         // console.log(this.viewLayLines);
-        console.log(et - st);
     }
 
     updateIntersectionFromViewLaysAndFaces() {
@@ -182,25 +174,44 @@ class Camera {
                     const intersectionFromViewLayAndPlane
                         = getIntersectionFromLineAndPlane(this.viewLayLines[y][x], face.plane);
                     if (face.checkPointOnFace(intersectionFromViewLayAndPlane)) {
-                        this.intersectionsFromViewLaysAndFaces[y][x].push(intersectionFromViewLayAndPlane);
+                        this.intersectionsFromViewLaysAndFaces[y][x].push({
+                            intersection: intersectionFromViewLayAndPlane,
+                            length: getLengthFrom2Points(this.focus, intersectionFromViewLayAndPlane),
+                            face: face,
+                        });
                     }
                 }
             }
         }
         // console.log(this.intersectionsFromViewLaysAndFaces);
-        let IFVLAF = [];
+    }
+
+    drawPixels(ctx) {
         for (let y = 0; y < CAN_H; y++) {
-            IFVLAF[y] = []
             for (let x = 0; x < CAN_W; x++) {
-                IFVLAF[y][x] = this.intersectionsFromViewLaysAndFaces[y][x].length;
+                const pixelInfo = this.intersectionsFromViewLaysAndFaces[y][x];
+                if (pixelInfo.length) {
+                    pixelInfo.sort((a, b) => {
+                        if (a.length < b.length) return -1;
+                        if (a.length > b.length) return 1;
+                        return 0;
+                    });
+                    ctx.fillStyle = pixelInfo[0].face.color;
+                    ctx.fillRect(x, y, 1, 1);
+                }
             }
         }
+    }
 
-        // console.log(IFVLAF);
+    drawFace() {
+        this.updateViewLayVectorsFromFocus();
+        this.updateViewLayLines();
+        this.updateIntersectionFromViewLaysAndFaces();
+        this.drawPixels(con);
     }
 
     importShapes() {
-        this.importedVertexes = vertexesList.map(vertex => vertex.getClone());
+        this.importedVertexes = vertexes.map(vertex => vertex.getClone());
         this.importedEdges = edges.map(edge => edge.getClone());
         this.importedFaces = faces.map(face => face.getClone());
     }
@@ -336,7 +347,7 @@ class Camera {
             drawCircle(con2, cdx, cdy, 1);
         }
 
-        for (const vertex of vertexesList) {
+        for (const vertex of vertexes) {
             const dx = vertex.x * can2ER + can2Half;
             const dy = vertex.y * -can2ER + can2Half;
             drawCircle(con2, dx, dy, 2.5);
@@ -392,12 +403,13 @@ class Camera {
         this.updateFocusPoint();
         this.updatePlane();
         this.importShapes();
+        this.drawFace();
         this.draw();
     }
 }
 
 
-const vertexesList = [
+const vertexes = [
     new Vertex(0, 3, 0),
     new Vertex(1, 2, 1),
     new Vertex(1, 2, -1),
@@ -412,13 +424,13 @@ const vertexesList = [
 // for (let i = 0; i < 10; i++) {
 //     for (let j = 0; j < 10; j++) {
 //         for (let k = 0; k < 1; k++) {
-//             vertexesList.push(new Vertex(i, j, k));
+//             vertexes.push(new Vertex(i, j, k));
 //         }
 //     }
 // }
 
-for (let i = 0; i < vertexesList.length; i++) {
-    vertexesList[i].i = i;
+for (let i = 0; i < vertexes.length; i++) {
+    vertexes[i].i = i;
 }
 
 
@@ -444,7 +456,7 @@ const edges = [];
 for (const v of edgeIndexesList) {
     const v1 = v[0];
     const v2 = v[1];
-    edges.push(new Edge(vertexesList[v1], vertexesList[v2]));
+    edges.push(new Edge(vertexes[v1], vertexes[v2]));
 }
 console.log(edges);
 console.log(getCrossProduct(edges[0].vector, edges[1].vector));
@@ -454,22 +466,32 @@ console.log(getCrossProduct(edges[1].vector, edges[0].vector));
 const faceIndexesList = [
     [1, 2, 3],
     [1, 5, 6],
-    [6, 7, 8],
-    [3, 4, 5],
+    [5, 7, 8],
+    [3, 4, 8],
     [1, 4, 5],
     [3, 6, 7],
 ];
 
+const faceColorsList = [
+    "#f00",
+    "#0f0",
+    "#00f",
+    "#ff0",
+    "#0ff",
+    "#f0f",
+];
+
 const faces = [];
-for (const v of faceIndexesList) {
+for (let i = 0; i < faceIndexesList.length; i++) {
+    const v = faceIndexesList[i];
     const v1 = v[0];
     const v2 = v[1];
     const v3 = v[2];
-    faces.push(new Face(vertexesList[v1], vertexesList[v2], vertexesList[v3]));
+    faces.push(new Face(vertexes[v1], vertexes[v2], vertexes[v3], faceColorsList[i]));
 }
 
 
-const camera = new Camera(new Point(0, -1, 0), 0, 0, 3, CAMERA_W, CAMERA_H);
+const camera = new Camera(new Point(-2, -1, 0), 0, 0, 3, CAMERA_W, CAMERA_H);
 
 console.log(camera);
 
@@ -488,10 +510,4 @@ function mainLoop() {
 
 // mainLoop();
 
-setInterval(mainLoop, 1000 / 60);
-
-console.log(faces[0].checkPointOnFace(new Point(1, -4, -0.5625)));
-
-// console.log(getIntersectionFromLineAndPlane(
-//     new Line(camera.focus, new Vector(0.2, 0, -0.2))
-// ))
+setInterval(mainLoop, 1000 / 30);

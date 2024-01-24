@@ -1,4 +1,4 @@
-import { Line, Plane, Point, convert0ToLim0, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getVectorFrom2Points, max, min } from "./math.js";
+import { Line, Plane, Point, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getVectorFrom2Points, max, min } from "./math.js";
 
 
 export class Vertex extends Point {
@@ -62,10 +62,12 @@ export class Edge {
 }
 
 export class Face {
-    constructor(vertex1, vertex2, vertex3) {
+    constructor(vertex1, vertex2, vertex3, color) {
         this.vertex1 = vertex1;
         this.vertex2 = vertex2;
         this.vertex3 = vertex3;
+
+        this.color = color;
 
         this.vector1 = getVectorFrom2Points(this.vertex1, this.vertex2);
         this.vector2 = getVectorFrom2Points(this.vertex1, this.vertex3);
@@ -76,7 +78,7 @@ export class Face {
     }
 
     getClone() {
-        return new Face(this.vertex1.getClone(), this.vertex2.getClone(), this.vertex3.getClone());
+        return new Face(this.vertex1.getClone(), this.vertex2.getClone(), this.vertex3.getClone(), this.color);
     }
 
     /**
@@ -110,22 +112,32 @@ export class Face {
         const a = this.vector1;
         const b = this.vector2;
         const p = getVectorFrom2Points(this.vertex1, point);
+        // console.log(a, b, p);
 
         /**
          * 二軸で計算すると、分母が0になる場合があるので
          * 3パターン計算すれば必ず0にならない式が作れる
+         * 
+         * これでもまだ足りないのが分かったので
+         * sも2通りの式を作る
          */
 
         const t1 = (p.x * a.y - p.y * a.x) / (b.x * a.y - b.y * a.x);
-        const s1 = (p.x - t1 * b.x) / a.x;
+        const s11 = (p.x - t1 * b.x) / a.x;
+        const s12 = (p.y - t1 * b.y) / a.y;
+        let s1 = isNaN(s11) ? s12 : s11;
         const st1 = s1 + t1;
 
         const t2 = (p.y * a.z - p.z * a.y) / (b.y * a.z - b.z * a.y);
-        const s2 = (p.y - t2 * b.y) / a.y;
+        const s21 = (p.y - t2 * b.y) / a.y;
+        const s22 = (p.z - t2 * b.z) / a.z;
+        let s2 = isNaN(s21) ? s22 : s21;
         const st2 = s2 + t2;
 
         const t3 = (p.z * a.x - p.x * a.z) / (b.z * a.x - b.x * a.z);
-        const s3 = (p.z - t3 * b.z) / a.z;
+        const s31 = (p.z - t3 * b.z) / a.z;
+        const s32 = (p.x - t3 * b.x) / a.x;
+        let s3 = isNaN(s31) ? s32 : s31;
         const st3 = s3 + t3;
 
         let s;
@@ -144,7 +156,6 @@ export class Face {
             t = t3;
         }
 
-        // return (s >= 0 && t >= 0 && s + t <= 1);
-        return (0 <= s && s <= 1 && 0 <= t && t <= 1);
+        return (s >= 0 && t >= 0 && s + t <= 1);
     }
 }
