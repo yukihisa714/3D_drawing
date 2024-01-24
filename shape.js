@@ -111,17 +111,10 @@ export class Face {
         const b = this.vector2;
         const p = getVectorFrom2Points(this.vertex1, point);
 
-        // a.x = convert0ToLim0(a.x);
-        // a.y = convert0ToLim0(a.y);
-        // a.z = convert0ToLim0(a.z);
-
-        // b.x = convert0ToLim0(b.x);
-        // b.y = convert0ToLim0(b.y);
-        // b.z = convert0ToLim0(b.z);
-
-        // p.x = convert0ToLim0(p.x);
-        // p.y = convert0ToLim0(p.y);
-        // p.z = convert0ToLim0(p.z);
+        /**
+         * 二軸で計算すると、分母が0になる場合があるので
+         * 3パターン計算すれば必ず0にならない式が作れる
+         */
 
         const t1 = (p.x * a.y - p.y * a.x) / (b.x * a.y - b.y * a.x);
         const s1 = (p.x - t1 * b.x) / a.x;
@@ -152,11 +145,6 @@ export class Face {
         }
 
         // return (s >= 0 && t >= 0 && s + t <= 1);
-        return ([s >= 0, t >= 0, s + t <= 1]);
-        // return [
-        //     [s1, t1],
-        //     [s2, t2],
-        //     [s3, t3],
-        // ];
+        return (0 <= s && s <= 1 && 0 <= t && t <= 1);
     }
 }

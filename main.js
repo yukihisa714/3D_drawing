@@ -71,9 +71,9 @@ class Camera {
 
         this.update();
 
-        // this.updateViewLayVectorsFromFocus();
-        // this.updateViewLayLines();
-        // this.updateIntersectionFromViewLaysAndFaces();
+        this.updateViewLayVectorsFromFocus();
+        this.updateViewLayLines();
+        this.updateIntersectionFromViewLaysAndFaces();
     }
 
 
@@ -94,7 +94,7 @@ class Camera {
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.pos);
     }
 
-    updateCornerVectorsFromPas() {
+    updateCornerVectorsFromPos() {
         this.cornerVectorsFromPos = {
             topLeft: new Vector(-this.width / 2, 0, this.height / 2),
             topRight: new Vector(this.width / 2, 0, this.height / 2),
@@ -138,15 +138,17 @@ class Camera {
                 const cameraVectorToRightPixel = cameraPixelVectorToRight.getClone().multiplication(x);
                 // カメラの左上から特定のピクセルへのベクトル
                 const cameraVectorFromTopLeftToPixel = getSumOf2Vectors(cameraVectorToBottomPixel, cameraVectorToRightPixel);
+                // カメラの中心から特定のピクセルへのベクトル
+                const cameraPixelVectorFromPos = getSumOf2Vectors(this.cornerVectorsFromPos.topLeft, cameraVectorFromTopLeftToPixel);
                 // 焦点から特定のピクセルへのベクトル
-                const cameraPixelVectorFromFocus = getSumOf2Vectors(this.cornerVectorsFromPos.topLeft, cameraVectorFromTopLeftToPixel);
+                const cameraPixelVectorFromFocus = getSumOf2Vectors(this.normalVector, cameraPixelVectorFromPos);
                 this.viewLayVectorsFromFocus[y][x] = cameraPixelVectorFromFocus;
             }
         }
 
         const et = performance.now();
 
-        console.log(this.viewLayVectorsFromFocus);
+        // console.log(this.viewLayVectorsFromFocus);
         console.log(et - st);
     }
 
@@ -166,36 +168,35 @@ class Camera {
 
         const et = performance.now();
 
-        console.log(this.viewLayLines);
+        // console.log(this.viewLayLines);
         console.log(et - st);
     }
 
     updateIntersectionFromViewLaysAndFaces() {
-        this.intersectionsFromViwLaysAndFaces = [];
+        this.intersectionsFromViewLaysAndFaces = [];
         for (let y = 0; y < CAN_H; y++) {
-            this.intersectionsFromViwLaysAndFaces[y] = [];
+            this.intersectionsFromViewLaysAndFaces[y] = [];
             for (let x = 0; x < CAN_W; x++) {
-                this.intersectionsFromViwLaysAndFaces[y][x] = [];
+                this.intersectionsFromViewLaysAndFaces[y][x] = [];
                 for (const face of this.importedFaces) {
-                    const intersectionFromViwLayAndPlane
+                    const intersectionFromViewLayAndPlane
                         = getIntersectionFromLineAndPlane(this.viewLayLines[y][x], face.plane);
-                    if (face.checkPointOnFace(intersectionFromViwLayAndPlane)) {
-                        this.intersectionsFromViwLaysAndFaces[y][x].push(intersectionFromViwLayAndPlane);
-                        console.log(1);
+                    if (face.checkPointOnFace(intersectionFromViewLayAndPlane)) {
+                        this.intersectionsFromViewLaysAndFaces[y][x].push(intersectionFromViewLayAndPlane);
                     }
                 }
             }
         }
-        console.log(this.intersectionsFromViwLaysAndFaces);
+        // console.log(this.intersectionsFromViewLaysAndFaces);
         let IFVLAF = [];
         for (let y = 0; y < CAN_H; y++) {
             IFVLAF[y] = []
             for (let x = 0; x < CAN_W; x++) {
-                IFVLAF[y][x] = this.intersectionsFromViwLaysAndFaces[y][x].length;
+                IFVLAF[y][x] = this.intersectionsFromViewLaysAndFaces[y][x].length;
             }
         }
 
-        console.log(IFVLAF);
+        // console.log(IFVLAF);
     }
 
     importShapes() {
@@ -386,7 +387,7 @@ class Camera {
     update() {
         this.move();
         this.updateNormalVector();
-        this.updateCornerVectorsFromPas();
+        this.updateCornerVectorsFromPos();
         this.updateCornerPoints();
         this.updateFocusPoint();
         this.updatePlane();
@@ -489,6 +490,8 @@ function mainLoop() {
 
 setInterval(mainLoop, 1000 / 60);
 
-console.log(faces[0]);
-console.log(faces[0].checkPointOnFace(new Point(0, 2, -1)));
-console.log(faces[0]);
+console.log(faces[0].checkPointOnFace(new Point(1, -4, -0.5625)));
+
+// console.log(getIntersectionFromLineAndPlane(
+//     new Line(camera.focus, new Vector(0.2, 0, -0.2))
+// ))
