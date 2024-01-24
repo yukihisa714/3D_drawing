@@ -67,12 +67,12 @@ export class Face {
         this.vertex2 = vertex2;
         this.vertex3 = vertex3;
 
-        this.vector1 = getVectorFrom2Points(this.vertex1, vertex2);
-        this.vector2 = getVectorFrom2Points(this.vertex1, vertex3);
+        this.vector1 = getVectorFrom2Points(this.vertex1, this.vertex2);
+        this.vector2 = getVectorFrom2Points(this.vertex1, this.vertex3);
 
         this.normalVector = getCrossProduct(this.vector1, this.vector2);
 
-        this.plane = getPlaneFromVectorAndPoint(this.normalVector, vertex1.point);
+        this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.vertex1.point);
     }
 
     getClone() {
@@ -111,21 +111,52 @@ export class Face {
         const b = this.vector2;
         const p = getVectorFrom2Points(this.vertex1, point);
 
-        a.x = convert0ToLim0(a.x);
-        a.y = convert0ToLim0(a.y);
-        a.z = convert0ToLim0(a.z);
+        // a.x = convert0ToLim0(a.x);
+        // a.y = convert0ToLim0(a.y);
+        // a.z = convert0ToLim0(a.z);
 
-        b.x = convert0ToLim0(b.x);
-        b.y = convert0ToLim0(b.y);
-        b.z = convert0ToLim0(b.z);
+        // b.x = convert0ToLim0(b.x);
+        // b.y = convert0ToLim0(b.y);
+        // b.z = convert0ToLim0(b.z);
 
-        p.x = convert0ToLim0(p.x);
-        p.y = convert0ToLim0(p.y);
-        p.z = convert0ToLim0(p.z);
+        // p.x = convert0ToLim0(p.x);
+        // p.y = convert0ToLim0(p.y);
+        // p.z = convert0ToLim0(p.z);
 
-        const t = (p.x * a.y - p.y * a.x) / (b.x * a.y - b.y * a.x);
-        const s = (p.x - t * b.x) / a.x;
+        const t1 = (p.x * a.y - p.y * a.x) / (b.x * a.y - b.y * a.x);
+        const s1 = (p.x - t1 * b.x) / a.x;
+        const st1 = s1 + t1;
 
-        return (s >= 0 && t >= 0 && s + t <= 1);
+        const t2 = (p.y * a.z - p.z * a.y) / (b.y * a.z - b.z * a.y);
+        const s2 = (p.y - t2 * b.y) / a.y;
+        const st2 = s2 + t2;
+
+        const t3 = (p.z * a.x - p.x * a.z) / (b.z * a.x - b.x * a.z);
+        const s3 = (p.z - t3 * b.z) / a.z;
+        const st3 = s3 + t3;
+
+        let s;
+        let t;
+
+        if (isNaN(st1) === false) {
+            s = s1;
+            t = t1;
+        }
+        else if (isNaN(st2) === false) {
+            s = s2;
+            t = t2;
+        }
+        else if (isNaN(st3) === false) {
+            s = s3;
+            t = t3;
+        }
+
+        // return (s >= 0 && t >= 0 && s + t <= 1);
+        return ([s >= 0, t >= 0, s + t <= 1]);
+        // return [
+        //     [s1, t1],
+        //     [s2, t2],
+        //     [s3, t3],
+        // ];
     }
 }

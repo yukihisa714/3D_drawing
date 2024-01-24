@@ -275,7 +275,7 @@ export function getCrossProduct(vector1, vector2) {
 export function getVectorFrom2Points(point1, point2) {
     return new Vector(point2.x - point1.x, point2.y - point1.y, point2.z - point1.z);
 }
-
+console.log(getVectorFrom2Points(new Point(1, 2, 1), new Point(1, 2, -1)));
 
 /**
  * 法線ベクトルとそのベクトルを通る一点から平面のクラスを取得する関数

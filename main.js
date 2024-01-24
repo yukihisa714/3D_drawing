@@ -71,9 +71,9 @@ class Camera {
 
         this.update();
 
-        this.updateViewLayVectorsFromFocus();
-        this.updateViewLayLines();
-        this.updateIntersectionFromViewLaysAndFaces();
+        // this.updateViewLayVectorsFromFocus();
+        // this.updateViewLayLines();
+        // this.updateIntersectionFromViewLaysAndFaces();
     }
 
 
@@ -466,7 +466,6 @@ for (const v of faceIndexesList) {
     const v3 = v[2];
     faces.push(new Face(vertexesList[v1], vertexesList[v2], vertexesList[v3]));
 }
-console.log(faces[0].checkPointOnFace(new Point(0, 1.999999999, -0.5)));
 
 
 const camera = new Camera(new Point(0, -1, 0), 0, 0, 3, CAMERA_W, CAMERA_H);
@@ -489,3 +488,7 @@ function mainLoop() {
 // mainLoop();
 
 setInterval(mainLoop, 1000 / 60);
+
+console.log(faces[0]);
+console.log(faces[0].checkPointOnFace(new Point(0, 2, -1)));
+console.log(faces[0]);
