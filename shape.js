@@ -96,3 +96,15 @@ export class Face {
         return (s >= 0 && t >= 0 && s + t <= 1);
     }
 }
+
+
+export class Light {
+    constructor(pos, power) {
+        this.pos = pos;
+        this.power = power;
+    }
+
+    getClone() {
+        return new Light(this.pos, this.power);
+    }
+}

@@ -119,8 +119,9 @@ export class Vector {
      */
     changeLength(newLength) {
         const rate = newLength / this.length;
-        this.length = newLength;
         this.multiplication(rate);
+
+        return this.getClone();
     }
 
     /**
