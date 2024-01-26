@@ -27,18 +27,6 @@ export function min(num1, num2) {
 }
 
 /**
- * 数字を要素に持つ配列からNaNとInfinity意外の数字を返す関数
- * 配列に返すべき数字が複数あった場合、indexが小さいものを一つ返す
- * @param {Array} nums number型を要素に持つ配列
- */
-export function getNotInfinityAndNaN(nums) {
-    for (const num of nums) {
-        if (isFinite(num) || isNaN(num)) continue;
-        return num;
-    }
-}
-
-/**
  * ポイントのクラス
  */
 export class Point {
@@ -292,6 +280,86 @@ export function getVectorFrom2Points(point1, point2) {
  */
 export function getLengthFrom2Points(point1, point2) {
     return getVectorFrom2Points(point1, point2).getLength();
+}
+
+/**
+ * 任意のベクトルを二つの基準ベクトルで表すための変数s,tを返す関数
+ * p→ = sa→ + tb→
+ * 式が平面上でのものなので、a,b,p全てが同一平面状にあることが条件
+ * @param {Vector} pVector s,tで表したいベクトル
+ * @param {Vector} aVector 基準のベクトル
+ * @param {Vector} bVector 基準のベクトル
+ * @returns {Object} {s, t}
+ */
+export function getSTFrom3Vectors(pVector, aVector, bVector) {
+    /**
+     * a→ = (ax, ay, az)
+     * b→ = (bx, by, bz)
+     * p→ = (px, py, pz)
+     * 
+     * p が a,bを含む平面上にあるとき、存在条件はx,yのみでいい
+     * 
+     * (s>=0, t>=0, s+t<=1)
+     * 
+     * px = s*ax + t*bx
+     * py = s*zy + t*by
+     * 
+     * px*ay = s*ax*ay + t*bx*ay
+     * py*ax = s*ax*ay + t*by*ax
+     * 
+     * px*ay - py*ax = t*bx*ay - t*by*ax
+     * t = (px*ay - py*ax) / (bx*ay - by*ax)
+     * s = (px - t*bx) / ax
+     * s = (py - t*by) / ay
+     */
+
+    const p = pVector;
+    const a = aVector;
+    const b = bVector;
+
+    /**
+     * 二軸で計算すると、分母が0になる場合があるので
+     * 3パターン計算すれば必ず0にならない式が作れる
+     * 
+     * これでもまだ足りないのが分かったので
+     * sも2通りの式を作る
+     */
+
+    const t1 = (p.x * a.y - p.y * a.x) / (b.x * a.y - b.y * a.x);
+    const s11 = (p.x - t1 * b.x) / a.x;
+    const s12 = (p.y - t1 * b.y) / a.y;
+    let s1 = isNaN(s11) ? s12 : s11;
+    const st1 = s1 + t1;
+
+    const t2 = (p.y * a.z - p.z * a.y) / (b.y * a.z - b.z * a.y);
+    const s21 = (p.y - t2 * b.y) / a.y;
+    const s22 = (p.z - t2 * b.z) / a.z;
+    let s2 = isNaN(s21) ? s22 : s21;
+    const st2 = s2 + t2;
+
+    const t3 = (p.z * a.x - p.x * a.z) / (b.z * a.x - b.x * a.z);
+    const s31 = (p.z - t3 * b.z) / a.z;
+    const s32 = (p.x - t3 * b.x) / a.x;
+    let s3 = isNaN(s31) ? s32 : s31;
+    const st3 = s3 + t3;
+
+    let s;
+    let t;
+
+    if (isNaN(st1) === false) {
+        s = s1;
+        t = t1;
+    }
+    else if (isNaN(st2) === false) {
+        s = s2;
+        t = t2;
+    }
+    else if (isNaN(st3) === false) {
+        s = s3;
+        t = t3;
+    }
+
+    return { s, t };
 }
 
 /**

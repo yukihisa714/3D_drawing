@@ -424,6 +424,11 @@ const vertexes = [
     new Vertex(1, 4, -1),
     new Vertex(-1, 4, -1),
     new Vertex(-1, 4, 1),
+
+    new Vertex(15, 15, -1.5),
+    new Vertex(15, -15, -1.5),
+    new Vertex(-15, 15, -1.5),
+    new Vertex(-15, -15, -1.5),
 ];
 
 // for (let i = 0; i < 10; i++) {
@@ -452,6 +457,11 @@ const edgeIndexesList = [
     [2, 6],
     [3, 7],
     [4, 8],
+
+    [9, 10],
+    [10, 12],
+    [12, 11],
+    [11, 9],
 
     // [1, 3],
     // [1, 6],
@@ -482,6 +492,11 @@ const faceIndexesList = [
     [3, 4, 8],
     [1, 4, 5],
     [3, 6, 7],
+
+    // [9, 10, 11],
+    // [10, 11, 12],
+    [9, 11, 12],
+    [10, 12, 9],
 ];
 
 const faceColorsList = [
@@ -491,6 +506,9 @@ const faceColorsList = [
     "#ff0",
     "#0ff",
     "#f0f",
+
+    "#bbb",
+    "#bbb",
 ];
 
 const faces = [];
