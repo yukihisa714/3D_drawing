@@ -328,19 +328,19 @@ export function getSTFrom3Vectors(pVector, aVector, bVector) {
     const t1 = (p.x * a.y - p.y * a.x) / (b.x * a.y - b.y * a.x);
     const s11 = (p.x - t1 * b.x) / a.x;
     const s12 = (p.y - t1 * b.y) / a.y;
-    let s1 = isNaN(s11) ? s12 : s11;
+    const s1 = isNaN(s11) ? s12 : s11;
     const st1 = s1 + t1;
 
     const t2 = (p.y * a.z - p.z * a.y) / (b.y * a.z - b.z * a.y);
     const s21 = (p.y - t2 * b.y) / a.y;
     const s22 = (p.z - t2 * b.z) / a.z;
-    let s2 = isNaN(s21) ? s22 : s21;
+    const s2 = isNaN(s21) ? s22 : s21;
     const st2 = s2 + t2;
 
     const t3 = (p.z * a.x - p.x * a.z) / (b.z * a.x - b.x * a.z);
     const s31 = (p.z - t3 * b.z) / a.z;
     const s32 = (p.x - t3 * b.x) / a.x;
-    let s3 = isNaN(s31) ? s32 : s31;
+    const s3 = isNaN(s31) ? s32 : s31;
     const st3 = s3 + t3;
 
     let s;
@@ -366,7 +366,7 @@ export function getSTFrom3Vectors(pVector, aVector, bVector) {
  * 法線ベクトルとそのベクトルを通る一点から平面のクラスを取得する関数
  * @param {Vector} normalVector 法線ベクトル
  * @param {Point} point ポイント
- * @returns {Plane}
+ * @returns {Plane} 平面
  */
 export function getPlaneFromVectorAndPoint(normalVector, point) {
     const { x: a, y: b, z: c } = normalVector;
@@ -383,7 +383,7 @@ export function getPlaneFromVectorAndPoint(normalVector, point) {
  * 直線と平面の交点を求める関数
  * @param {Line} line 直線
  * @param {Plane} plane 平面
- * @returns {Point}
+ * @returns {Point} 交点
  */
 export function getIntersectionFromLineAndPlane(line, plane) {
     /*
