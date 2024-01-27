@@ -116,6 +116,7 @@ export class Vector {
     /**
      * 指定した長さに変えるメソッド
      * @param {number} newLength 新しい長さ
+     * @returns {Vector}
      */
     changeLength(newLength) {
         const rate = newLength / this.length;
@@ -129,7 +130,7 @@ export class Vector {
      * 自身を回転し、更に新しいVectorクラスを返す
      * @param {number} rx x軸を中心にした回転
      * @param {number} rz y軸を中心にした回転
-     * @returns 
+     * @returns {Vector}
      */
     rotate(rx, rz) {
         /*

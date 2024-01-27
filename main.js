@@ -104,7 +104,7 @@ class Camera {
             topRight: new Vector(this.width / 2, 0, this.height / 2),
             bottomLeft: new Vector(-this.width / 2, 0, -this.height / 2),
             bottomRight: new Vector(this.width / 2, 0, -this.height / 2),
-        }
+        };
         for (const key in this.cornerVectorsFromPos) {
             this.cornerVectorsFromPos[key].rotate(this.rx, this.rz);
         }
@@ -112,10 +112,13 @@ class Camera {
 
     updateCornerPoints() {
         this.cornerPoints = {
-            topLeft: this.pos.getClone().move(this.cornerVectorsFromPos.topLeft),
-            topRight: this.pos.getClone().move(this.cornerVectorsFromPos.topRight),
-            bottomLeft: this.pos.getClone().move(this.cornerVectorsFromPos.bottomLeft),
-            bottomRight: this.pos.getClone().move(this.cornerVectorsFromPos.bottomRight),
+            topLeft: this.pos.getClone(),
+            topRight: this.pos.getClone(),
+            bottomLeft: this.pos.getClone(),
+            bottomRight: this.pos.getClone(),
+        };
+        for (const key in this.cornerPoints) {
+            this.cornerPoints[key].move(this.cornerVectorsFromPos[key]);
         }
     }
 
@@ -510,13 +513,6 @@ const vertexes = [
     new Vertex(-7, 3, 1),
 ];
 
-// for (let i = 0; i < 10; i++) {
-//     for (let j = 0; j < 10; j++) {
-//         for (let k = 0; k < 1; k++) {
-//             vertexes.push(new Vertex(i, j, k));
-//         }
-//     }
-// }
 
 for (let i = 0; i < vertexes.length; i++) {
     vertexes[i].i = i;
@@ -562,9 +558,6 @@ const edgeIndexesList = [
     // [4, 5],
     // [3, 6],
 ];
-// for (let i = 19; i < 109; i++) {
-//     edgeIndexesList.push([9, i]);
-// }
 
 const edges = [];
 for (const v of edgeIndexesList) {
@@ -572,9 +565,7 @@ for (const v of edgeIndexesList) {
     const v2 = v[1];
     edges.push(new Edge(vertexes[v1], vertexes[v2]));
 }
-console.log(edges);
-console.log(getCrossProduct(edges[0].vector, edges[1].vector));
-console.log(getCrossProduct(edges[1].vector, edges[0].vector));
+// console.log(edges);
 
 
 const faceIndexesList = [
@@ -638,7 +629,9 @@ for (let i = 0; i < faceIndexesList.length; i++) {
     faces.push(new Face(vertexes[v1], vertexes[v2], vertexes[v3], faceColorsList[i]));
 }
 
-const lights = [new Light(new Point(-4, 4, 4), 10, [255, 255, 255])];
+const lights = [
+    new Light(new Point(-4, 4, 4), 10, [255, 255, 255])
+];
 
 
 const camera = new Camera(new Point(-2, -1, 0), 0, 0, 3, CAMERA_W, CAMERA_H);
