@@ -99,12 +99,13 @@ export class Face {
 
 
 export class Light {
-    constructor(pos, power) {
+    constructor(pos, power, color) {
         this.pos = pos;
         this.power = power;
+        this.color = color;
     }
 
     getClone() {
-        return new Light(this.pos, this.power);
+        return new Light(this.pos, this.power, this.color);
     }
 }

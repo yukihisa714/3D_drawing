@@ -235,6 +235,8 @@ class Camera {
                         brightness = brightness < 0 ? 0 : brightness;
                         ctx.fillStyle = `rgba(0,0,0, ${1 - brightness})`;
                         ctx.fillRect(x, y, 1, 1);
+                        ctx.fillStyle = `rgba(${light.color[0]}, ${light.color[1]}, ${light.color[2]}, ${brightness})`;
+                        ctx.fillRect(x, y, 1, 1);
                     }
                 }
             }
@@ -251,15 +253,15 @@ class Camera {
                         const shadowLayVector = getVectorFrom2Points(pixelInfo.intersection, light.pos);
                         const newStartPoint = pixelInfo.intersection.getClone();
                         // 交点がある平面と交差するのを避けるために少しずらす
-                        const tweakVector = shadowLayVector.getClone().changeLength(0.00001);
+                        const tweakVector = shadowLayVector.getClone().changeLength(0.01);
                         newStartPoint.move(tweakVector);
                         const shadowLayEdge = new Edge(newStartPoint, light.pos);
                         for (const face of this.importedFaces) {
-                            const intersection = getIntersectionFromLineAndPlane(shadowLayEdge.line, face.plane);
-                            if (face.checkPointOnFace(intersection)) {
-                                isShadow = true;
-                                break light;
-                            }
+                            const intersection = getIntersectionFromLineAndPlane(shadowLayEdge.line, face.plane)
+                            if (shadowLayEdge.checkEdgePlaneIntersection(face.plane) === false) continue;
+                            if (face.checkPointOnFace(intersection) === false) continue;
+                            isShadow = true;
+                            break light;
                         }
                     }
                     if (isShadow) {
@@ -497,6 +499,15 @@ const vertexes = [
     new Vertex(15, -15, -1.5),
     new Vertex(-15, 15, -1.5),
     new Vertex(-15, -15, -1.5),
+
+    new Vertex(-5, 3, -1),
+    new Vertex(-5, 5, -1),
+    new Vertex(-7, 5, -1),
+    new Vertex(-7, 3, -1),
+    new Vertex(-5, 3, 1),
+    new Vertex(-5, 5, 1),
+    new Vertex(-7, 5, 1),
+    new Vertex(-7, 3, 1),
 ];
 
 // for (let i = 0; i < 10; i++) {
@@ -530,6 +541,19 @@ const edgeIndexesList = [
     [10, 12],
     [12, 11],
     [11, 9],
+
+    [13, 14],
+    [14, 15],
+    [15, 16],
+    [16, 13],
+    [13, 17],
+    [14, 18],
+    [15, 19],
+    [16, 20],
+    [17, 18],
+    [18, 19],
+    [19, 20],
+    [20, 17],
 
     // [1, 3],
     // [1, 6],
@@ -565,6 +589,19 @@ const faceIndexesList = [
     // [10, 11, 12],
     [9, 11, 12],
     [10, 12, 9],
+
+    [13, 14, 15],
+    [13, 15, 16],
+    [13, 14, 17],
+    [14, 17, 18],
+    [14, 15, 18],
+    [15, 18, 19],
+    [15, 16, 20],
+    [15, 19, 20],
+    [13, 16, 20],
+    [13, 17, 20],
+    [17, 18, 19],
+    [17, 19, 20],
 ];
 
 const faceColorsList = [
@@ -577,6 +614,19 @@ const faceColorsList = [
 
     "#bbb",
     "#bbb",
+
+    "#fff",
+    "#fff",
+    "#fff",
+    "#fff",
+    "#fff",
+    "#fff",
+    "#fff",
+    "#fff",
+    "#fff",
+    "#fff",
+    "#fff",
+    "#fff",
 ];
 
 const faces = [];
@@ -588,7 +638,7 @@ for (let i = 0; i < faceIndexesList.length; i++) {
     faces.push(new Face(vertexes[v1], vertexes[v2], vertexes[v3], faceColorsList[i]));
 }
 
-const lights = [new Light(new Point(-4, 4, 4), 10)];
+const lights = [new Light(new Point(-4, 4, 4), 10, [255, 255, 255])];
 
 
 const camera = new Camera(new Point(-2, -1, 0), 0, 0, 3, CAMERA_W, CAMERA_H);
