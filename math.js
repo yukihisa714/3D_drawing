@@ -26,6 +26,14 @@ export function min(num1, num2) {
     return Math.min(num1, num2);
 }
 
+export function get2dArray(row, col) {
+    const array = [];
+    for (let r = 0; r < row; r++) {
+        array[r] = new Array(col);
+    }
+    return array;
+}
+
 /**
  * ポイントのクラス
  */

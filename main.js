@@ -1,4 +1,4 @@
-import { Line, Point, Vector, cos, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin } from "./math.js";
+import { Line, Point, Vector, cos, get2dArray, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin } from "./math.js";
 import { Edge, Face, Light, Vertex } from "./shape.js";
 
 const CAMERA_W = 3.2;
@@ -137,15 +137,11 @@ class Camera {
     }
 
 
-    /**
-     * 焦点からカメラの全ピクセルへのベクトルを更新するメソッド
-     */
-    updateViewLayVectorsFromFocus() {
-        this.viewLayVectorsFromFocus = [];
+    updateToDrawIntersections2() {
+        this.toDrawIntersectionsFromViewLaysAndFaces = get2dArray(CAN_H, CAN_W);
         for (let y = 0; y < CAN_H; y++) {
-            this.viewLayVectorsFromFocus[y] = [];
-            const cameraVectorToBottomPixel = this.onCameraPlane1pxVector.toBottom.getClone().multiplication(y);
             for (let x = 0; x < CAN_W; x++) {
+                const cameraVectorToBottomPixel = this.onCameraPlane1pxVector.toBottom.getClone().multiplication(y);
                 const cameraVectorToRightPixel = this.onCameraPlane1pxVector.toRight.getClone().multiplication(x);
                 // カメラの左上から特定のピクセルへのベクトル
                 const cameraVectorFromTopLeftToPixel = getSumOf2Vectors(cameraVectorToBottomPixel, cameraVectorToRightPixel);
@@ -153,68 +149,40 @@ class Camera {
                 const cameraPixelVectorFromPos = getSumOf2Vectors(this.cornerVectorsFromPos.topLeft, cameraVectorFromTopLeftToPixel);
                 // 焦点から特定のピクセルへのベクトル
                 const cameraPixelVectorFromFocus = getSumOf2Vectors(this.normalVector, cameraPixelVectorFromPos);
-                this.viewLayVectorsFromFocus[y][x] = cameraPixelVectorFromFocus;
-            }
-        }
-    }
+                // 焦点から特定のピクセルへの直線
+                const viewLayLines = new Line(this.focus, cameraPixelVectorFromFocus);
 
-    /**
-     * 焦点からカメラの全ピクセルへの直線を更新するメソッド
-     */
-    updateViewLayLines() {
-        this.viewLayLines = [];
-        for (let y = 0; y < CAN_H; y++) {
-            this.viewLayLines[y] = [];
-            for (let x = 0; x < CAN_W; x++) {
-                this.viewLayLines[y][x] = new Line(this.focus, this.viewLayVectorsFromFocus[y][x])
-            }
-        }
-    }
-
-    updateIntersectionFromViewLaysAndFaces() {
-        this.intersectionsFromViewLaysAndFaces = [];
-        for (let y = 0; y < CAN_H; y++) {
-            this.intersectionsFromViewLaysAndFaces[y] = [];
-            for (let x = 0; x < CAN_W; x++) {
-                this.intersectionsFromViewLaysAndFaces[y][x] = [];
+                const intersectionsFromViewLaysAndFaces = [];
                 for (const face of this.importedFaces) {
-                    const intersectionFromViewLayAndPlane
-                        = getIntersectionFromLineAndPlane(this.viewLayLines[y][x], face.plane);
+                    const intersectionFromViewLayAndPlane = getIntersectionFromLineAndPlane(viewLayLines, face.plane);
                     // 交点がカメラの背面にあるときcontinue
                     if (this.plane.isPointInFrontOf(intersectionFromViewLayAndPlane) === false) continue;
                     // 交点が面上にないとき(面からはみ出しているとき)continue
                     if (face.checkPointOnFace(intersectionFromViewLayAndPlane) === false) continue;
-                    this.intersectionsFromViewLaysAndFaces[y][x].push({
+                    // 交点,交点までの距離,交点を含む面 を連想配列に格納
+                    intersectionsFromViewLaysAndFaces.push({
                         intersection: intersectionFromViewLayAndPlane,
                         length: getLengthFrom2Points(this.focus, intersectionFromViewLayAndPlane),
                         face: face,
                     });
                 }
+
+                // 交点を距離をもとに昇順にソート
+                intersectionsFromViewLaysAndFaces.sort((a, b) => {
+                    if (a.length < b.length) return -1;
+                    if (a.length > b.length) return 1;
+                    return 0;
+                });
+                // 一番手前(カメラから一番近い交点)のみを別配列に保存
+                const pixelInfo = intersectionsFromViewLaysAndFaces[0];
+
+                // 配列に格納
+                this.toDrawIntersectionsFromViewLaysAndFaces[y][x] = pixelInfo;
             }
         }
     }
 
-    updateToDrawIntersections() {
-        this.toDrawIntersectionsFromViewLaysAndFaces = [];
-        for (let y = 0; y < CAN_H; y++) {
-            this.toDrawIntersectionsFromViewLaysAndFaces[y] = [];
-            for (let x = 0; x < CAN_W; x++) {
-                const pixelInfo = this.intersectionsFromViewLaysAndFaces[y][x];
-                if (pixelInfo.length) {
-                    // lengthの値に注目して昇順にソート
-                    pixelInfo.sort((a, b) => {
-                        if (a.length < b.length) return -1;
-                        if (a.length > b.length) return 1;
-                        return 0;
-                    });
-                    // 一番手前(カメラから一番近い交点)のみを別配列に保存
-                    this.toDrawIntersectionsFromViewLaysAndFaces[y][x] = pixelInfo[0];
-                }
-            }
-        }
-    }
-
-    drawPixels(ctx) {
+    drawFaceColors(ctx) {
         for (let y = 0; y < CAN_H; y++) {
             for (let x = 0; x < CAN_W; x++) {
                 const pixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x];
@@ -235,10 +203,10 @@ class Camera {
                         const color = light.color;
                         const lightDistance = getLengthFrom2Points(pixelInfo.intersection, light.pos);
                         let brightness = 1 - lightDistance / light.power;
-                        brightness = brightness < 0 ? 0 : brightness;
+
                         ctx.fillStyle = `rgba(0,0,0, ${1 - brightness})`;
                         ctx.fillRect(x, y, 1, 1);
-                        ctx.fillStyle = `rgba(${light.color[0]}, ${light.color[1]}, ${light.color[2]}, ${brightness})`;
+                        ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${brightness})`;
                         ctx.fillRect(x, y, 1, 1);
                     }
                 }
@@ -277,11 +245,8 @@ class Camera {
     }
 
     drawFace() {
-        this.updateViewLayVectorsFromFocus();
-        this.updateViewLayLines();
-        this.updateIntersectionFromViewLaysAndFaces();
-        this.updateToDrawIntersections();
-        this.drawPixels(con3);
+        this.updateToDrawIntersections2();
+        this.drawFaceColors(con3);
         this.drawShade(con3);
         this.drawShadow(con3);
     }
