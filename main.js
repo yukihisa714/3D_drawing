@@ -1,4 +1,4 @@
-import { Line, Point, Vector, cos, get2dArray, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin } from "./math.js";
+import { Line, Point, Vector, cos, get2dArray, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin } from "./math.js";
 import { Edge, Face, Light, Vertex } from "./shape.js";
 
 const CAMERA_W = 3.2;
@@ -93,7 +93,6 @@ class Camera {
         );
     }
 
-
     updatePlane() {
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.pos);
     }
@@ -135,7 +134,6 @@ class Camera {
             toBottom: this.onCameraPlaneVector.toBottom.multiplication(1 / CAN_H),
         };
     }
-
 
     updateToDrawIntersections2() {
         this.toDrawIntersectionsFromViewLaysAndFaces = get2dArray(CAN_H, CAN_W);
@@ -332,13 +330,10 @@ class Camera {
 
 
     draw() {
-        const toDrawVertexes = [];
         for (const vertex of this.importedVertexes) {
             if (this.plane.isPointInFrontOf(vertex) === false) continue;
             const onScreenVertex1 = this.getOnScreenVertex(vertex);
-
             const toDrawVertex = this.getToDrawVertex(onScreenVertex1);
-            toDrawVertexes[vertex.i] = toDrawVertex;
 
             const dx = toDrawVertex.x;
             const dy = toDrawVertex.y;
@@ -348,8 +343,8 @@ class Camera {
             con.fillText(onScreenVertex1.i, dx, dy);
         }
 
-        for (const edge of this.importedEdges) {
-            edge.setVertexInFrontOfCamera(this.plane);
+        for (let i = 0; i < this.importedEdges.length; i++) {
+            const edge = this.importedEdges[i].getClone().setVertexInFrontOfCamera(this.plane);
             if (!this.plane.isPointInFrontOf(edge.vertex1) && !this.plane.isPointInFrontOf(edge.vertex2)) continue;
             const vertex1 = edge.vertex1.getClone();
             const vertex2 = edge.vertex2.getClone();
@@ -415,7 +410,7 @@ class Camera {
         }
         if (key["d"]) {
             this.pos.x += cos(this.rz) * v;
-            this.pos.y -= sin(this.rz) * v
+            this.pos.y -= sin(this.rz) * v;
         }
         if (key["w"]) {
             this.pos.x += sin(this.rz) * v;

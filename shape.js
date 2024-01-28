@@ -46,7 +46,8 @@ export class Edge {
 
     /**
      * 辺が(カメラ)平面と交差しているとき平面の後ろの頂点を平面上に移動するメソッド
-     * @param {Plane} plane 
+     * @param {Plane} plane
+     * @returns {Edge}
      */
     setVertexInFrontOfCamera(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
@@ -58,6 +59,7 @@ export class Edge {
                 this.vertex2 = new Vertex(intersection.x, intersection.y, intersection.z);
             }
         }
+        return this.getClone();
     }
 }
 

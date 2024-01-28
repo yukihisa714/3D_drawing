@@ -422,4 +422,3 @@ export function getIntersectionFromLineAndPlane(line, plane) {
 
     return new Point(x, y, z);
 }
-
