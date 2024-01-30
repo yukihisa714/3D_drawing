@@ -64,12 +64,13 @@ export class Edge {
 }
 
 export class Face {
-    constructor(vertex1, vertex2, vertex3, color) {
+    constructor(vertex1, vertex2, vertex3, color, roughness) {
         this.vertex1 = vertex1;
         this.vertex2 = vertex2;
         this.vertex3 = vertex3;
 
         this.color = color;
+        this.roughness = roughness;
 
         this.vector1 = getVectorFrom2Points(this.vertex1, this.vertex2);
         this.vector2 = getVectorFrom2Points(this.vertex1, this.vertex3);

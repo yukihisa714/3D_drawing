@@ -135,20 +135,27 @@ class Camera {
         };
     }
 
-    updateToDrawIntersections2() {
+    getCameraViewLayLines(x, y) {
+        // カメラの左上から右と下へのベクトル
+        const cameraVectorToBottomPixel = this.onCameraPlane1pxVector.toBottom.getClone().multiplication(y);
+        const cameraVectorToRightPixel = this.onCameraPlane1pxVector.toRight.getClone().multiplication(x);
+        // カメラの左上から特定のピクセルへのベクトル
+        const cameraVectorFromTopLeftToPixel = getSumOf2Vectors(cameraVectorToBottomPixel, cameraVectorToRightPixel);
+        // カメラの中心から特定のピクセルへのベクトル
+        const cameraPixelVectorFromPos = getSumOf2Vectors(this.cornerVectorsFromPos.topLeft, cameraVectorFromTopLeftToPixel);
+        // 焦点から特定のピクセルへのベクトル
+        const cameraPixelVectorFromFocus = getSumOf2Vectors(this.normalVector, cameraPixelVectorFromPos);
+        // 焦点から特定のピクセルへの直線
+        const viewLayLine = new Line(this.focus, cameraPixelVectorFromFocus);
+
+        return viewLayLine;
+    }
+
+    updateToDrawIntersections() {
         this.toDrawIntersectionsFromViewLaysAndFaces = get2dArray(CAN_H, CAN_W);
         for (let y = 0; y < CAN_H; y++) {
             for (let x = 0; x < CAN_W; x++) {
-                const cameraVectorToBottomPixel = this.onCameraPlane1pxVector.toBottom.getClone().multiplication(y);
-                const cameraVectorToRightPixel = this.onCameraPlane1pxVector.toRight.getClone().multiplication(x);
-                // カメラの左上から特定のピクセルへのベクトル
-                const cameraVectorFromTopLeftToPixel = getSumOf2Vectors(cameraVectorToBottomPixel, cameraVectorToRightPixel);
-                // カメラの中心から特定のピクセルへのベクトル
-                const cameraPixelVectorFromPos = getSumOf2Vectors(this.cornerVectorsFromPos.topLeft, cameraVectorFromTopLeftToPixel);
-                // 焦点から特定のピクセルへのベクトル
-                const cameraPixelVectorFromFocus = getSumOf2Vectors(this.normalVector, cameraPixelVectorFromPos);
-                // 焦点から特定のピクセルへの直線
-                const viewLayLines = new Line(this.focus, cameraPixelVectorFromFocus);
+                const viewLayLines = this.getCameraViewLayLines(x, y);
 
                 const intersectionsFromViewLaysAndFaces = [];
                 for (const face of this.importedFaces) {
@@ -171,8 +178,14 @@ class Camera {
                     if (a.length > b.length) return 1;
                     return 0;
                 });
-                // 一番手前(カメラから一番近い交点)のみを別配列に保存
-                const pixelInfo = intersectionsFromViewLaysAndFaces[0];
+                // 見える頂点(半透明なら奥も見える)を別配列に保存
+                const pixelInfo = [];
+                for (let i = 0; i < intersectionsFromViewLaysAndFaces.length; i++) {
+                    pixelInfo.push(intersectionsFromViewLaysAndFaces[i]);
+                    if (intersectionsFromViewLaysAndFaces[i].face.color[3] === 1) {
+                        break;
+                    }
+                }
 
                 // 配列に格納
                 this.toDrawIntersectionsFromViewLaysAndFaces[y][x] = pixelInfo;
@@ -180,13 +193,15 @@ class Camera {
         }
     }
 
-    drawFaceColors(ctx) {
+    drawColor(ctx) {
         for (let y = 0; y < CAN_H; y++) {
             for (let x = 0; x < CAN_W; x++) {
-                const pixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x];
-                if (pixelInfo) {
-                    ctx.fillStyle = pixelInfo.face.color;
-                    ctx.fillRect(x, y, 1, 1);
+                for (let i = this.toDrawIntersectionsFromViewLaysAndFaces[y][x].length - 1; i >= 0; i--) {
+                    const pixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x][i];
+                    if (pixelInfo) {
+                        ctx.fillStyle = `rgba(${pixelInfo.face.color})`;
+                        ctx.fillRect(x, y, 1, 1);
+                    }
                 }
             }
         }
@@ -195,17 +210,19 @@ class Camera {
     drawShade(ctx) {
         for (let y = 0; y < CAN_H; y++) {
             for (let x = 0; x < CAN_W; x++) {
-                const pixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x];
-                if (pixelInfo) {
-                    for (const light of this.importedLights) {
-                        const color = light.color;
-                        const lightDistance = getLengthFrom2Points(pixelInfo.intersection, light.pos);
-                        let brightness = 1 - lightDistance / light.power;
+                for (let i = this.toDrawIntersectionsFromViewLaysAndFaces[y][x].length - 1; i >= 0; i--) {
+                    const pixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x][i];
+                    if (pixelInfo) {
+                        for (const light of this.importedLights) {
+                            const color = light.color;
+                            const lightDistance = getLengthFrom2Points(pixelInfo.intersection, light.pos);
+                            let brightness = 1 - lightDistance / light.power;
 
-                        ctx.fillStyle = `rgba(0,0,0, ${1 - brightness})`;
-                        ctx.fillRect(x, y, 1, 1);
-                        ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${brightness})`;
-                        ctx.fillRect(x, y, 1, 1);
+                            ctx.fillStyle = `rgba(0,0,0, ${1 - brightness})`;
+                            ctx.fillRect(x, y, 1, 1);
+                            ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${brightness * pixelInfo.face.color[3]})`;
+                            ctx.fillRect(x, y, 1, 1);
+                        }
                     }
                 }
             }
@@ -215,27 +232,31 @@ class Camera {
     drawShadow(ctx) {
         for (let y = 0; y < CAN_H; y++) {
             for (let x = 0; x < CAN_W; x++) {
-                const pixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x];
-                if (pixelInfo) {
-                    let isShadow = false;
-                    light: for (const light of this.importedLights) {
-                        const shadowLayVector = getVectorFrom2Points(pixelInfo.intersection, light.pos);
-                        const newStartPoint = pixelInfo.intersection.getClone();
-                        // 交点がある平面と交差するのを避けるために少しずらす
-                        const tweakVector = shadowLayVector.getClone().changeLength(0.01);
-                        newStartPoint.move(tweakVector);
-                        const shadowLayEdge = new Edge(newStartPoint, light.pos);
-                        for (const face of this.importedFaces) {
-                            const intersection = getIntersectionFromLineAndPlane(shadowLayEdge.line, face.plane)
-                            if (shadowLayEdge.checkEdgePlaneIntersection(face.plane) === false) continue;
-                            if (face.checkPointOnFace(intersection) === false) continue;
-                            isShadow = true;
-                            break light;
+                for (let i = this.toDrawIntersectionsFromViewLaysAndFaces[y][x].length - 1; i >= 0; i--) {
+                    const pixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x][i];
+                    if (pixelInfo) {
+                        let isShadow = false;
+                        let shadowLevel = 0;
+                        light: for (const light of this.importedLights) {
+                            const shadowLayVector = getVectorFrom2Points(pixelInfo.intersection, light.pos);
+                            const newStartPoint = pixelInfo.intersection.getClone();
+                            // 交点がある平面と交差するのを避けるために少しずらす
+                            const tweakVector = shadowLayVector.getClone().changeLength(0.01);
+                            newStartPoint.move(tweakVector);
+                            const shadowLayEdge = new Edge(newStartPoint, light.pos);
+                            for (const face of this.importedFaces) {
+                                const intersection = getIntersectionFromLineAndPlane(shadowLayEdge.line, face.plane)
+                                if (shadowLayEdge.checkEdgePlaneIntersection(face.plane) === false) continue;
+                                if (face.checkPointOnFace(intersection) === false) continue;
+                                isShadow = true;
+                                shadowLevel += face.color[3];
+                                if (shadowLevel >= 1) break light;
+                            }
                         }
-                    }
-                    if (isShadow) {
-                        ctx.fillStyle = "#000";
-                        ctx.fillRect(x, y, 1, 1);
+                        if (isShadow) {
+                            ctx.fillStyle = `rgba(0,0,0,${shadowLevel})`;
+                            ctx.fillRect(x, y, 1, 1);
+                        }
                     }
                 }
             }
@@ -243,8 +264,8 @@ class Camera {
     }
 
     drawFace() {
-        this.updateToDrawIntersections2();
-        this.drawFaceColors(con3);
+        this.updateToDrawIntersections();
+        this.drawColor(con3);
         this.drawShade(con3);
         this.drawShadow(con3);
     }
@@ -471,6 +492,10 @@ const vertexes = [
     new Vertex(-5, 5, 1),
     new Vertex(-7, 5, 1),
     new Vertex(-7, 3, 1),
+
+    new Vertex(-3, 10, -1),
+    new Vertex(-1, 10, 3),
+    new Vertex(1, 10, -1),
 ];
 
 
@@ -553,31 +578,35 @@ const faceIndexesList = [
     [13, 17, 20],
     [17, 18, 19],
     [17, 19, 20],
+
+    [21, 22, 23],
 ];
 
 const faceColorsList = [
-    "#f00",
-    "#0f0",
-    "#00f",
-    "#ff0",
-    "#0ff",
-    "#f0f",
+    [[255, 0, 0, 1], 1],
+    [[0, 255, 0, 1], 1],
+    [[0, 0, 255, 1], 1],
+    [[255, 255, 0, 0.5], 1],
+    [[0, 255, 255, 1], 1],
+    [[255, 0, 255, 1], 1],
 
-    "#bbb",
-    "#bbb",
+    [[191, 191, 191, 1], 1],
+    [[191, 191, 191, 1], 1],
 
-    "#fff",
-    "#fff",
-    "#fff",
-    "#fff",
-    "#fff",
-    "#fff",
-    "#fff",
-    "#fff",
-    "#fff",
-    "#fff",
-    "#fff",
-    "#fff",
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+
+    [[255, 255, 255, 1], 0],
 ];
 
 const faces = [];
@@ -586,7 +615,7 @@ for (let i = 0; i < faceIndexesList.length; i++) {
     const v1 = v[0];
     const v2 = v[1];
     const v3 = v[2];
-    faces.push(new Face(vertexes[v1], vertexes[v2], vertexes[v3], faceColorsList[i]));
+    faces.push(new Face(vertexes[v1], vertexes[v2], vertexes[v3], faceColorsList[i][0], faceColorsList[i][1]));
 }
 
 const lights = [
