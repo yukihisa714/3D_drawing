@@ -1,5 +1,5 @@
 import { Line, Point, Vector, cos, get2dArray, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin } from "./math.js";
-import { Edge, Face, Light, Vertex } from "./shape.js";
+import { Edge, Face, Light, Vertex, checkDoesIntersectEdgeAndFace } from "./shape.js";
 
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
@@ -25,6 +25,9 @@ can3.height = CAN_H;
 can3.style.background = "#888";
 
 const con3 = can3.getContext("2d");
+
+const can4 = document.getElementById("colorText");
+const con4 = can4.getContext("2d");
 
 
 const key = {};
@@ -193,6 +196,47 @@ class Camera {
         }
     }
 
+    // 2点間に障害物(面)があるかどうかチェックするメソッド
+    checkIsThereObstaclesBetween2Points(point1, point2) {
+        const edge = new Edge(point1, point2);
+        for (const face of this.importedFaces) {
+            const doesIntersect = checkDoesIntersectEdgeAndFace(edge, face);
+            if (doesIntersect) return true;
+        }
+        return false;
+    }
+
+    getBrightness(point) {
+        let brightness = 0;
+        for (const light of this.importedLights) {
+            const shadowLayVector = getVectorFrom2Points(point, light.pos);
+            const newStartPoint = point.getClone();
+            // 交点がある平面と交差して障害物だと判定されるのを避けるために少しずらす
+            const tweakVector = shadowLayVector.getClone().changeLength(0.01);
+            newStartPoint.move(tweakVector);
+            const shadowLayEdge = new Edge(newStartPoint, light.pos);
+
+            const lightDistance = getLengthFrom2Points(point, light.pos);
+
+            if (this.checkIsThereObstaclesBetween2Points(newStartPoint, light.pos) === false) {
+                brightness += 1 - lightDistance / light.power;
+            }
+        }
+        return brightness;
+    }
+
+    updateToDrawPixelInfo() {
+        this.toDrawPixelInfo = get2dArray(CAN_H, CAN_W);
+        for (let y = 0; y < CAN_H; y++) {
+            for (let x = 0; x < CAN_W; x++) {
+                const somePixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x];
+                for (const pixelInfo of somePixelInfo) {
+
+                }
+            }
+        }
+    }
+
     drawColor(ctx) {
         for (let y = 0; y < CAN_H; y++) {
             for (let x = 0; x < CAN_W; x++) {
@@ -212,17 +256,15 @@ class Camera {
             for (let x = 0; x < CAN_W; x++) {
                 for (let i = this.toDrawIntersectionsFromViewLaysAndFaces[y][x].length - 1; i >= 0; i--) {
                     const pixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x][i];
-                    if (pixelInfo) {
-                        for (const light of this.importedLights) {
-                            const color = light.color;
-                            const lightDistance = getLengthFrom2Points(pixelInfo.intersection, light.pos);
-                            let brightness = 1 - lightDistance / light.power;
+                    for (const light of this.importedLights) {
+                        const color = light.color;
+                        const lightDistance = getLengthFrom2Points(pixelInfo.intersection, light.pos);
+                        let brightness = 1 - lightDistance / light.power;
 
-                            ctx.fillStyle = `rgba(0,0,0, ${1 - brightness})`;
-                            ctx.fillRect(x, y, 1, 1);
-                            ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${brightness * pixelInfo.face.color[3]})`;
-                            ctx.fillRect(x, y, 1, 1);
-                        }
+                        ctx.fillStyle = `rgba(0,0,0, ${1 - brightness})`;
+                        ctx.fillRect(x, y, 1, 1);
+                        ctx.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${brightness * pixelInfo.face.color[3]})`;
+                        ctx.fillRect(x, y, 1, 1);
                     }
                 }
             }
@@ -240,14 +282,12 @@ class Camera {
                         light: for (const light of this.importedLights) {
                             const shadowLayVector = getVectorFrom2Points(pixelInfo.intersection, light.pos);
                             const newStartPoint = pixelInfo.intersection.getClone();
-                            // 交点がある平面と交差するのを避けるために少しずらす
+                            // 交点がある平面と交差して障害物だと判定されるのを避けるために少しずらす
                             const tweakVector = shadowLayVector.getClone().changeLength(0.01);
                             newStartPoint.move(tweakVector);
                             const shadowLayEdge = new Edge(newStartPoint, light.pos);
                             for (const face of this.importedFaces) {
-                                const intersection = getIntersectionFromLineAndPlane(shadowLayEdge.line, face.plane)
-                                if (shadowLayEdge.checkEdgePlaneIntersection(face.plane) === false) continue;
-                                if (face.checkPointOnFace(intersection) === false) continue;
+                                if (checkDoesIntersectEdgeAndFace(shadowLayEdge, face) === false) continue;
                                 isShadow = true;
                                 shadowLevel += face.color[3];
                                 if (shadowLevel >= 1) break light;
@@ -619,7 +659,8 @@ for (let i = 0; i < faceIndexesList.length; i++) {
 }
 
 const lights = [
-    new Light(new Point(-4, 4, 4), 10, [255, 255, 255])
+    new Light(new Point(-4, 4, 4), 10, [255, 255, 255]),
+    // new Light(new Point(-2.5, 2.1, 3), 7, [255, 255, 255]),
 ];
 
 
@@ -633,12 +674,18 @@ function mainLoop() {
     con.clearRect(0, 0, CAN_W, CAN_H);
     con2.clearRect(0, 0, 100, 100);
     con3.clearRect(0, 0, CAN_W, CAN_H);
+    con4.clearRect(0, 0, 100, 100);
 
     camera.update();
 
     const et = performance.now();
     con.fillStyle = "#fff";
     con.fillText(`${((et - st) * 100 | 0) / 100}ms`, 10, 10);
+
+    con4.fillStyle = "rgba(0,0,0,1)";
+    con4.fillRect(0, 0, 70, 70);
+    con4.fillStyle = "rgba(0,0,255,0.5)";
+    con4.fillRect(30, 30, 70, 70);
 }
 
 // mainLoop();

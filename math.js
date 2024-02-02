@@ -340,36 +340,21 @@ export function getSTFrom3Vectors(pVector, aVector, bVector) {
     const s12 = (p.y - t1 * b.y) / a.y;
     const s1 = isNaN(s11) ? s12 : s11;
     const st1 = s1 + t1;
+    if (isNaN(st1) === false) return { s: s1, t: t1 };
 
     const t2 = (p.y * a.z - p.z * a.y) / (b.y * a.z - b.z * a.y);
     const s21 = (p.y - t2 * b.y) / a.y;
     const s22 = (p.z - t2 * b.z) / a.z;
     const s2 = isNaN(s21) ? s22 : s21;
     const st2 = s2 + t2;
+    if (isNaN(st2) === false) return { s: s2, t: t2 };
 
     const t3 = (p.z * a.x - p.x * a.z) / (b.z * a.x - b.x * a.z);
     const s31 = (p.z - t3 * b.z) / a.z;
     const s32 = (p.x - t3 * b.x) / a.x;
     const s3 = isNaN(s31) ? s32 : s31;
     const st3 = s3 + t3;
-
-    let s;
-    let t;
-
-    if (isNaN(st1) === false) {
-        s = s1;
-        t = t1;
-    }
-    else if (isNaN(st2) === false) {
-        s = s2;
-        t = t2;
-    }
-    else if (isNaN(st3) === false) {
-        s = s3;
-        t = t3;
-    }
-
-    return { s, t };
+    if (isNaN(st3) === false) return { s: s3, t: t3 };
 }
 
 /**

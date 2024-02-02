@@ -112,3 +112,17 @@ export class Light {
         return new Light(this.pos, this.power, this.color);
     }
 }
+
+/**
+ * 辺と面が交差しているかチェックする関数
+ * @param {Edge} edge 
+ * @param {Face} face 
+ */
+export function checkDoesIntersectEdgeAndFace(edge, face) {
+    return (
+        // 交点が辺上にあるかどうか
+        edge.checkEdgePlaneIntersection(face.plane) &&
+        // 交点が面上にあるかどうか
+        face.checkPointOnFace(getIntersectionFromLineAndPlane(edge.line, face.plane))
+    );
+}
