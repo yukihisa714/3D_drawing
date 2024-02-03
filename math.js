@@ -35,6 +35,26 @@ export function get2dArray(row, col) {
 }
 
 /**
+ * 
+ * @param {Array} color1 合成される色
+ * @param {Array} color2 合成する色
+ */
+export function getMixedColor(color1, color2) {
+    const a1 = color1[3];
+    const a2 = color2[3];
+
+    const a = a1 + (1 - a1) * a2;
+
+    const newColor = [];
+    for (let i = 0; i < 3; i++) {
+        newColor[i] = (color2[i] * a2 + color1[i] * (1 - a2) * a1) / a;
+    }
+    newColor[3] = a;
+    return newColor;
+}
+console.log(getMixedColor([255, 255, 255, 1], [0, 255, 0, 0.5]));
+
+/**
  * ポイントのクラス
  */
 export class Point {
@@ -193,6 +213,10 @@ export class Line {
         this.m = this.vector.y;
         this.n = this.vector.z;
     }
+
+    getClone() {
+        return new Line(this.point, this.vector);
+    }
 }
 
 export class Plane {
@@ -209,6 +233,10 @@ export class Plane {
         this.b = b;
         this.c = c;
         this.d = d;
+    }
+
+    getClone() {
+        return new Plane(this.a, this.b, this.c, this.d);
     }
 
     /**

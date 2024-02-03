@@ -1,5 +1,5 @@
-import { Line, Point, Vector, cos, get2dArray, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin } from "./math.js";
-import { Edge, Face, Light, Vertex, checkDoesIntersectEdgeAndFace } from "./shape.js";
+import { Line, Point, Vector, cos, get2dArray, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, getMixedColor, sin } from "./math.js";
+import { Edge, Face, Light, Vertex, checkDoesIntersectEdgeAndFace, checkDoesIntersectHalfLineAndFace } from "./shape.js";
 
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
@@ -154,6 +154,55 @@ class Camera {
         return viewLayLine;
     }
 
+    /**
+     * 1本の辺と面の交点を全て取得するメソッド
+     * lengthは、edgeのvertex1からの距離
+     * @param {Edge} edge 
+     */
+    getIntersectionsFromEdgeAndFaces(edge) {
+        const intersections = [];
+        for (const face of this.importedFaces) {
+            if (checkDoesIntersectEdgeAndFace(edge, face)) {
+                const intersection = getIntersectionFromLineAndPlane(edge.line, face.plane);
+                intersections.push({
+                    intersection: intersection,
+                    length: getLengthFrom2Points(edge.vertex1, intersection),
+                    face: face,
+                    opacity: face.color[3],
+                });
+            }
+        }
+        // 交点を距離をもとに昇順にソート
+        intersections.sort((a, b) => {
+            if (a.length < b.length) return -1;
+            if (a.length > b.length) return 1;
+            return 0;
+        });
+        return intersections;
+    }
+
+    getIntersectionsFromHalfLineAndFaces(halfLine) {
+        const intersections = [];
+        for (const face of this.importedFaces) {
+            if (checkDoesIntersectHalfLineAndFace(halfLine, face)) {
+                const intersection = getIntersectionFromLineAndPlane(halfLine.line, face.plane);
+                intersections.push({
+                    intersection: intersection,
+                    length: getLengthFrom2Points(halfLine.point, intersection),
+                    face: face,
+                    opacity: face.color[3],
+                });
+            }
+        }
+        // 交点を距離をもとに昇順にソート
+        intersections.sort((a, b) => {
+            if (a.length < b.length) return -1;
+            if (a.length > b.length) return 1;
+            return 0;
+        });
+        return intersections;
+    }
+
     updateToDrawIntersections() {
         this.toDrawIntersectionsFromViewLaysAndFaces = get2dArray(CAN_H, CAN_W);
         for (let y = 0; y < CAN_H; y++) {
@@ -206,22 +255,27 @@ class Camera {
         return false;
     }
 
-    getBrightness(point) {
-        let brightness = 0;
-        for (const light of this.importedLights) {
-            const shadowLayVector = getVectorFrom2Points(point, light.pos);
-            const newStartPoint = point.getClone();
-            // 交点がある平面と交差して障害物だと判定されるのを避けるために少しずらす
-            const tweakVector = shadowLayVector.getClone().changeLength(0.01);
-            newStartPoint.move(tweakVector);
-            const shadowLayEdge = new Edge(newStartPoint, light.pos);
+    getBrightnessFromLight(point, light) {
+        const shadowLayVector = getVectorFrom2Points(point, light.pos);
+        const newStartPoint = point.getClone();
+        // 交点がある平面と交差して障害物だと判定されるのを避けるために少しずらす
+        const tweakVector = shadowLayVector.getClone().changeLength(0.0001);
+        newStartPoint.move(tweakVector);
+        const shadowLayEdge = new Edge(light.pos, newStartPoint);
 
-            const lightDistance = getLengthFrom2Points(point, light.pos);
+        const intersections = this.getIntersectionsFromEdgeAndFaces(shadowLayEdge);
 
-            if (this.checkIsThereObstaclesBetween2Points(newStartPoint, light.pos) === false) {
-                brightness += 1 - lightDistance / light.power;
-            }
+        const lightDistance = getLengthFrom2Points(point, light.pos);
+        const shadeLevel = (light.power / (light.power + 5)) ** lightDistance;
+
+        const transparency = 1;
+        for (const intersection of intersections) {
+            const opacity = intersection.opacity;
+            transparency *= 1 - opacity;
         }
+        const shadowLevel = transparency;
+
+        const brightness = shadeLevel * shadowLevel;
         return brightness;
     }
 
@@ -230,8 +284,15 @@ class Camera {
         for (let y = 0; y < CAN_H; y++) {
             for (let x = 0; x < CAN_W; x++) {
                 const somePixelInfo = this.toDrawIntersectionsFromViewLaysAndFaces[y][x];
-                for (const pixelInfo of somePixelInfo) {
-
+                for (let i = somePixelInfo.length - 1; i >= 0; i--) {
+                    const pixelInfo = somePixelInfo[i];
+                    let drawColor = [0, 0, 0, 1];
+                    for (const light of this.importedLights) {
+                        const brightness = this.getBrightnessFromLight(pixelInfo.intersection, light);
+                        let lightColor = light.color;
+                        lightColor[3] = brightness;
+                        drawColor = getMixedColor(drawColor, lightColor);
+                    }
                 }
             }
         }
@@ -283,7 +344,7 @@ class Camera {
                             const shadowLayVector = getVectorFrom2Points(pixelInfo.intersection, light.pos);
                             const newStartPoint = pixelInfo.intersection.getClone();
                             // 交点がある平面と交差して障害物だと判定されるのを避けるために少しずらす
-                            const tweakVector = shadowLayVector.getClone().changeLength(0.01);
+                            const tweakVector = shadowLayVector.getClone().changeLength(0.0001);
                             newStartPoint.move(tweakVector);
                             const shadowLayEdge = new Edge(newStartPoint, light.pos);
                             for (const face of this.importedFaces) {
@@ -657,6 +718,7 @@ for (let i = 0; i < faceIndexesList.length; i++) {
     const v3 = v[2];
     faces.push(new Face(vertexes[v1], vertexes[v2], vertexes[v3], faceColorsList[i][0], faceColorsList[i][1]));
 }
+console.log(faces[0]);
 
 const lights = [
     new Light(new Point(-4, 4, 4), 10, [255, 255, 255]),
@@ -682,10 +744,12 @@ function mainLoop() {
     con.fillStyle = "#fff";
     con.fillText(`${((et - st) * 100 | 0) / 100}ms`, 10, 10);
 
-    con4.fillStyle = "rgba(0,0,0,1)";
+    con4.fillStyle = "rgba(255,0,0,1)";
     con4.fillRect(0, 0, 70, 70);
-    con4.fillStyle = "rgba(0,0,255,0.5)";
-    con4.fillRect(30, 30, 70, 70);
+    con4.fillStyle = "rgba(0,255,0,0.5)";
+    con4.fillRect(30, 0, 70, 70);
+    con4.fillStyle = "rgba(0,0,255,0.75)";
+    con4.fillRect(15, 30, 70, 70);
 }
 
 // mainLoop();
