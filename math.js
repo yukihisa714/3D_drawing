@@ -233,6 +233,7 @@ export class Plane {
     }
 }
 
+
 /**
  * ２つのベクトルの和を取得する関数
  * @param {Vector} vector1 
