@@ -1,4 +1,4 @@
-import { Line, Plane, Point, getCrossProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points, max, min } from "./math.js";
+import { Line, Plane, Point, Vector, getCrossProduct, getInnerProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points, max, min } from "./math.js";
 
 
 export class Vertex extends Point {
@@ -63,6 +63,31 @@ export class Edge {
     }
 }
 
+export class HalfLine extends Line {
+    constructor(point, vector) {
+        super(point, vector);
+        this.line = new Line(this.point, this.vector);
+    }
+
+    getClone() {
+        return new HalfLine(this.point, this.vector);
+    }
+
+    isPointWithinRange(point) {
+        const toPointVector = new Vector(this.point, point);
+        const innerProduct = getInnerProduct(this.vector, toPointVector);
+        return innerProduct > 0;
+    }
+
+    isOnIntersectionWithPlane(plane) {
+        const intersection = getIntersectionFromLineAndPlane(this.line, plane);
+        const isOnIntersection = this.isPointWithinRange(intersection);
+        return isOnIntersection;
+    }
+}
+console.log(new HalfLine(new Point(0, 0, 0), new Vector(1, 1, 1)));
+
+
 export class Face {
     constructor(vertex1, vertex2, vertex3, color, roughness) {
         this.vertex1 = vertex1;
@@ -111,4 +136,27 @@ export class Light {
     getClone() {
         return new Light(this.pos, this.power, this.color);
     }
+}
+
+/**
+ * 辺と面が交差しているかチェックする関数
+ * @param {Edge} edge 
+ * @param {Face} face 
+ */
+export function checkDoesIntersectEdgeAndFace(edge, face) {
+    return (
+        // 交点が辺上にあるかどうか
+        edge.checkEdgePlaneIntersection(face.plane) &&
+        // 交点が面上にあるかどうか
+        face.checkPointOnFace(getIntersectionFromLineAndPlane(edge.line, face.plane))
+    );
+}
+
+export function checkDoesIntersectHalfLineAndFace(halfLine, face) {
+    return (
+        // 交点が半直線上にあるかどうか
+        halfLine.isOnIntersectionWithPlane(face.plane) &&
+        // 交点が面上にあるかどうか
+        face.checkPointOnFace(getIntersectionFromLineAndPlane(halfLine.line, face.plane))
+    )
 }
