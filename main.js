@@ -1,6 +1,7 @@
 import { Line, Point, Vector, cos, get2dArray, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSumOf2Vectors, getVectorFrom2Points, sin } from "./math.js";
 import { Edge, Face, Light, Vertex } from "./shape.js";
 
+// 空間内におけるカメラの大きさ（メートル）
 const CAMERA_W = 3.2;
 const CAMERA_H = 1.8;
 
