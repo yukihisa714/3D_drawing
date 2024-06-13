@@ -7,6 +7,7 @@ const CAMERA_H = 1.8;
 
 const expandingRatio = 50;
 
+// キャンバスサイズ（ピクセル）
 const CAN_W = CAMERA_W * expandingRatio;
 const CAN_H = CAMERA_H * expandingRatio;
 
