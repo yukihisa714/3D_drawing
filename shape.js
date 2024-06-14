@@ -142,6 +142,7 @@ export class Light {
  * 辺と面が交差しているかチェックする関数
  * @param {Edge} edge 
  * @param {Face} face 
+ * @returns {boolean}
  */
 export function checkDoesIntersectEdgeAndFace(edge, face) {
     return (
