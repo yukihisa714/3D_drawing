@@ -160,6 +160,7 @@ class Camera {
      * 1本の辺と面の交点を全て取得するメソッド
      * lengthは、edgeのvertex1からの距離
      * @param {Edge} edge 
+     * @returns {Array} 交点の配列
      */
     getIntersectionsFromEdgeAndFaces(edge) {
         const intersections = [];

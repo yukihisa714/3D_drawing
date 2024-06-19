@@ -244,7 +244,7 @@ export class Plane {
      * @param {number} x 
      * @param {number} y 
      * @param {number} z 
-     * @returns {number} 代入した結果 0でなければ点は平面上に無いということ
+     * @returns {number} 代入した結果が0でなければ点(x,y,z)は平面上に無いということ
      */
     substitute(x, y, z) {
         return this.a * x + this.b * y + this.c * z + this.d;
