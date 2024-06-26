@@ -286,6 +286,20 @@ export class Plane {
 export function getSumOf2Vectors(vector1, vector2) {
     return new Vector(vector1.x + vector2.x, vector1.y + vector2.y, vector1.z + vector2.z);
 }
+/**
+ * 複数のベクトルの和を取得する関数
+ * @param {Array} vectorsList ベクトルクラスを格納した配列
+ * @returns {Vector}
+ */
+export function getSumOfVectors(vectorsList) {
+    const result = new Vector(0, 0, 0);
+    for (const v of vectorsList) {
+        result.x += v.x;
+        result.y += v.y;
+        result.z += v.z;
+    }
+    return result;
+}
 
 
 /**
