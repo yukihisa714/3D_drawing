@@ -56,7 +56,7 @@ export class Edge {
         const innerProduct1 = getInnerProduct(this.vector, toPointVector1);
         const innerProduct2 = getInnerProduct(this.vector, toPointVector2);
 
-        return innerProduct1 > 0 && innerProduct2 < 0;
+        return innerProduct1 >= 0 && innerProduct2 <= 0;
     }
 
     /**
@@ -120,7 +120,7 @@ export class HalfLine extends Line {
         const toPointVector = getVectorFrom2Points(this.point, point);
         const innerProduct = getInnerProduct(this.vector, toPointVector);
 
-        return innerProduct > 0;
+        return innerProduct >= 0;
     }
 
     /**

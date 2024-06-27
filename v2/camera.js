@@ -149,21 +149,9 @@ export class Camera {
         const rayVector = getVectorFrom2Points(this.focus, vertex.point);
         const rayHalfLine = new HalfLine(this.focus, rayVector);
         const intersection = rayHalfLine.isOnIntersectionWithPlane(this.plane);
-        if (intersection === null) return null;
         const intersectionVertex = new Vertex(intersection.x, intersection.y, intersection.z, vertex.i);
 
-        // カメラの面をおいてその範囲も検証
-        const cameraFace1 = getFaceFrom3Points(this.cornerPoints.topLeft, this.cornerPoints.bottomLeft, this.cornerPoints.topRight);
-        const cameraFace2 = getFaceFrom3Points(this.cornerPoints.bottomRight, this.cornerPoints.topRight, this.cornerPoints.bottomLeft);
-        // 交点がcanvas外だったらreturn null
-        if (cameraFace1.isPointOnFace(intersection)) {
-            return intersectionVertex;
-        }
-        if (cameraFace2.isPointOnFace(intersection)) {
-            return intersectionVertex;
-        }
-
-        return null;
+        return intersectionVertex;
     }
 
     /**

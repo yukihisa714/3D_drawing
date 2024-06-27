@@ -238,6 +238,6 @@ function mainLoop() {
 
 }
 
-mainLoop();
+// mainLoop();
 
 setInterval(mainLoop, MSPF);
