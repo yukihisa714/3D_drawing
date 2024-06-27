@@ -117,7 +117,7 @@ export class HalfLine extends Line {
      * @returns {boolean}
      */
     isPointInRange(point) {
-        const toPointVector = new Vector(this.point, point);
+        const toPointVector = getVectorFrom2Points(this.point, point);
         const innerProduct = getInnerProduct(this.vector, toPointVector);
 
         return innerProduct > 0;
@@ -231,4 +231,27 @@ export function checkDoesIntersectEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
         else return null;
     }
     else return null;
+}
+
+/**
+ * ポイントからとりあえず頂点を取得する関数
+ * @param {Point} point 
+ * @returns {Vertex}
+ */
+export function getVertexFromPoint(point) {
+    return new Vertex(point.x, point.y, point.z);
+}
+/**
+ * ポイントから面を取得する関数
+ * @param {Point} point1 
+ * @param {Point} point2 
+ * @param {Point} point3 
+ * @returns {Face}
+ */
+export function getFaceFrom3Points(point1, point2, point3) {
+    return new Face(
+        getVertexFromPoint(point1),
+        getVertexFromPoint(point2),
+        getVertexFromPoint(point3),
+    );
 }

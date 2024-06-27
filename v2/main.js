@@ -1,8 +1,12 @@
+import { Point } from "./math.js";
+import { Edge, Face, Light, Vertex } from "./shape.js";
+import { Camera } from "./camera.js";
 
 
 
 // FPS
 const FPS = 30;
+// 1フレームのミリ秒
 const MSPF = 1000 / 30;
 
 
@@ -24,7 +28,7 @@ can.style.background = "#888";
 const con = can.getContext("2d");
 
 
-
+const ctxs = [con];
 
 
 const key = {};
@@ -37,21 +41,203 @@ document.onkeyup = e => {
 }
 
 
-function drawCircle(ctx, x, y, r) {
-    ctx.beginPath();
-    ctx.arc(x, y, r, 0, 2 * Math.PI);
-    ctx.fillStyle = "#000";
-    ctx.fill();
+
+
+const VERTEXES = [
+    new Vertex(0, 3, 0),
+    new Vertex(1, 2, 1),
+    new Vertex(1, 2, -1),
+    new Vertex(-1, 2, -1),
+    new Vertex(-1, 2, 1),
+    new Vertex(1, 4, 1),
+    new Vertex(1, 4, -1),
+    new Vertex(-1, 4, -1),
+    new Vertex(-1, 4, 1),
+
+    new Vertex(15, 15, -1.5),
+    new Vertex(15, -15, -1.5),
+    new Vertex(-15, 15, -1.5),
+    new Vertex(-15, -15, -1.5),
+
+    new Vertex(-5, 3, -1),
+    new Vertex(-5, 5, -1),
+    new Vertex(-7, 5, -1),
+    new Vertex(-7, 3, -1),
+    new Vertex(-5, 3, 1),
+    new Vertex(-5, 5, 1),
+    new Vertex(-7, 5, 1),
+    new Vertex(-7, 3, 1),
+
+    new Vertex(-3, 10, -1),
+    new Vertex(-1, 10, 3),
+    new Vertex(1, 10, -1),
+];
+
+for (let i = 0; i < VERTEXES.length; i++) {
+    VERTEXES[i].i = i;
 }
 
-function drawLine(ctx, x1, y1, x2, y2) {
-    ctx.beginPath();
-    ctx.lineTo(x1, y1);
-    ctx.lineTo(x2, y2);
-    ctx.closePath();
-    ctx.lineWIdth = 1;
-    ctx.strokeStyle = "#000";
-    ctx.stroke();
+
+const EDGE_INDEXES_LIST = [
+    [1, 2],
+    [2, 3],
+    [3, 4],
+    [4, 1],
+    [5, 6],
+    [6, 7],
+    [7, 8],
+    [8, 5],
+    [1, 5],
+    [2, 6],
+    [3, 7],
+    [4, 8],
+
+    [9, 10],
+    [10, 12],
+    [12, 11],
+    [11, 9],
+
+    [13, 14],
+    [14, 15],
+    [15, 16],
+    [16, 13],
+    [13, 17],
+    [14, 18],
+    [15, 19],
+    [16, 20],
+    [17, 18],
+    [18, 19],
+    [19, 20],
+    [20, 17],
+
+    // [1, 3],
+    // [1, 6],
+    // [5, 7],
+    // [3, 8],
+    // [4, 5],
+    // [3, 6],
+];
+
+const EDGES = [];
+for (const v of EDGE_INDEXES_LIST) {
+    const v1 = v[0];
+    const v2 = v[1];
+    EDGES.push(new Edge(VERTEXES[v1], VERTEXES[v2]));
+}
+// console.log(EDGES);
+
+
+const FACE_INDEXES_LIST = [
+    [1, 2, 3],
+    [1, 5, 6],
+    [5, 7, 8],
+    [3, 4, 8],
+    [1, 4, 5],
+    [3, 6, 7],
+
+    // [9, 10, 11],
+    // [10, 11, 12],
+    [9, 11, 12],
+    [10, 12, 9],
+
+    [13, 14, 15],
+    [13, 15, 16],
+    [13, 14, 17],
+    [14, 17, 18],
+    [14, 15, 18],
+    [15, 18, 19],
+    [15, 16, 20],
+    [15, 19, 20],
+    [13, 16, 20],
+    [13, 17, 20],
+    [17, 18, 19],
+    [17, 19, 20],
+
+    [21, 22, 23],
+];
+
+const FACE_COLORS_LIST = [
+    [[255, 0, 0, 1], 1],
+    [[0, 255, 0, 1], 1],
+    [[0, 0, 255, 1], 1],
+    [[255, 255, 0, 0.5], 1],
+    [[0, 255, 255, 1], 1],
+    [[255, 0, 255, 1], 1],
+
+    [[191, 191, 191, 1], 1],
+    [[191, 191, 191, 1], 1],
+
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+    [[255, 255, 255, 1], 1],
+
+    [[255, 255, 255, 1], 0],
+];
+
+const FACES = [];
+for (let i = 0; i < FACE_INDEXES_LIST.length; i++) {
+    const v = FACE_INDEXES_LIST[i];
+    const v1 = v[0];
+    const v2 = v[1];
+    const v3 = v[2];
+    FACES.push(new Face(VERTEXES[v1], VERTEXES[v2], VERTEXES[v3], FACE_COLORS_LIST[i][0], FACE_COLORS_LIST[i][1]));
+}
+console.log(FACES[0]);
+
+
+
+const LIGHTS = [
+    new Light(new Point(-4, 4, 4), 10, [255, 255, 255]),
+    // new Light(new Point(-2.5, 2.1, 3), 7, [255, 255, 255]),
+];
+
+
+
+
+
+const CAMERA = new Camera(
+    new Point(-2, -1, 0),
+    0,
+    0,
+    3,
+    CAMERA_W,
+    CAMERA_H,
+    CAN_W,
+    CAN_H,
+    expandingRatio,
+    FPS,
+    3,
+    key,
+    ctxs,
+    VERTEXES,
+    EDGES,
+    FACES,
+    LIGHTS,
+);
+
+
+function mainLoop() {
+    const st = performance.now();
+
+    con.clearRect(0, 0, CAN_W, CAN_H);
+
+    CAMERA.update();
+
+    const et = performance.now();
+    con.fillStyle = "#fff";
+    con.fillText(`${((et - st) * 100 | 0) / 100}ms`, 5, 10);
+
 }
 
+mainLoop();
 
+setInterval(mainLoop, MSPF);

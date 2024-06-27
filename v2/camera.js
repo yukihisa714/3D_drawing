@@ -1,12 +1,13 @@
-import { Point, Vector, cos, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getSumOfVectors, getVectorFrom2Points, sin } from "./math.js";
-import { Face, HalfLine, Vertex, checkDoesIntersectEdgeOrHalfLineAndFace } from "./shape.js";
+import { Point, Vector, cos, getPlaneFromVectorAndPoint, getSumOfVectors, getVectorFrom2Points, sin } from "./math.js";
+import { Edge, Face, HalfLine, Light, Vertex, getFaceFrom3Points } from "./shape.js";
+import { drawCircle } from "./context.js";
 
 
 
 /**
  * カメラのクラス
  */
-class Camera {
+export class Camera {
     /**
      * コンストラクタ
      * @param {Point} pos カメラの位置
@@ -17,11 +18,17 @@ class Camera {
      * @param {number} height カメラの縦幅
      * @param {number} canW キャンバスの横幅
      * @param {number} canH キャンバスの縦幅
+     * @param {number} expandingRatio キャンバスの拡大率
      * @param {number} fps 
      * @param {number} speed メートル/秒
-     * @param {Array} key キーの状態（main.jsから参照渡し）
+     * @param {{}} key キーの状態（main.jsから参照渡し）
+     * @param {any[]} ctxs コンテクストの配列
+     * @param {Vertex[]} vertexes インポートする頂点の配列
+     * @param {Edge[]} edges インポートする辺の配列
+     * @param {Face[]} faces インポートする面の配列
+     * @param {Light[]} lights インポートするライトの配列
      */
-    constructor(pos, rx, rz, focalLength, width, height, canW, canH, fps, speed, key) {
+    constructor(pos, rx, rz, focalLength, width, height, canW, canH, expandingRatio, fps, speed, key, ctxs, vertexes, edges, faces, lights) {
         this.pos = pos;
         this.rx = rx;
         this.rz = rz;
@@ -30,11 +37,28 @@ class Camera {
         this.height = height;
         this.canW = canW;
         this.canH = canH;
+        this.expandingRatio = expandingRatio;
         this.fps = fps;
         this.speed = speed;
         this.key = key;
 
+        this.ctxs = ctxs;
+        this.con = this.ctxs[0];
+
+        this.vertexes = vertexes;
+        this.edges = edges;
+        this.faces = faces;
+        this.lights = lights;
+
+        this.importShapes();
         this.update();
+    }
+
+    importShapes() {
+        this.importedVertexes = this.vertexes.map(vertex => vertex.getClone());
+        this.importedEdges = this.edges.map(edge => edge.getClone());
+        this.importedFaces = this.faces.map(face => face.getClone());
+        this.importedLights = this.lights.map(light => light.getClone());
     }
 
     updateNormalVector() {
@@ -86,8 +110,8 @@ class Camera {
 
         // カメラの1px単位のベクトル
         this.onCameraPlane1pxVector = {
-            toRight: this.onCameraPlane1pxVector.toRight.multiplication(1 / this.canW),
-            toBottom: this.onCameraPlane1pxVector.toBottom.multiplication(1 / this.canH),
+            toRight: this.onCameraPlaneVector.toRight.multiplication(1 / this.canW),
+            toBottom: this.onCameraPlaneVector.toBottom.multiplication(1 / this.canH),
         };
     }
 
@@ -121,17 +145,16 @@ class Camera {
      */
     getProjectedVertex(vertex) {
         // 点がカメラ平面の後ろにあったらreturn
-        if (this.plane.isPointInFrontOf(vertex.point) === false) {
-            return null;
-        }
+        if (this.plane.isPointInFrontOf(vertex.point) === false) return null;
         const rayVector = getVectorFrom2Points(this.focus, vertex.point);
         const rayHalfLine = new HalfLine(this.focus, rayVector);
         const intersection = rayHalfLine.isOnIntersectionWithPlane(this.plane);
+        if (intersection === null) return null;
         const intersectionVertex = new Vertex(intersection.x, intersection.y, intersection.z, vertex.i);
 
         // カメラの面をおいてその範囲も検証
-        const cameraFace1 = new Face(this.cornerPoints.topLeft, this.cornerPoints.bottomLeft, this.cornerPoints.topRight);
-        const cameraFace2 = new Face(this.cornerPoints.bottomRight, this.cornerPoints.topRight, this.cornerPoints.bottomLeft);
+        const cameraFace1 = getFaceFrom3Points(this.cornerPoints.topLeft, this.cornerPoints.bottomLeft, this.cornerPoints.topRight);
+        const cameraFace2 = getFaceFrom3Points(this.cornerPoints.bottomRight, this.cornerPoints.topRight, this.cornerPoints.bottomLeft);
         // 交点がcanvas外だったらreturn null
         if (cameraFace1.isPointOnFace(intersection)) {
             return intersectionVertex;
@@ -181,32 +204,75 @@ class Camera {
         return new Vertex(x3, y3, z3, vertex.i);
     }
 
-
-    /**
-     * 頂点をカメラ平面に投影、座標変換
-     * @param {Vertex} vertex 
-     * @returns {Vertex|null}
-     */
-    getOnScreenVertex(vertex) {
-        const projectedVertex = this.getProjectedVertex(vertex);
-        if (projectedVertex === null) {
-            return null;
-        }
-        const convertedVertex = this.getConvertedVertex(projectedVertex);
-
-        return convertedVertex;
-    }
-
-
     /**
      * 座標変換した頂点の描画位置を取得するメソッド
      * @param {Vertex} convertedVertex 座標変換済みの頂点
      * @returns {{x: number, y: number}} x,y座標のみ
      */
     getToDrawVertex(convertedVertex) {
-        const x = (convertedVertex.x - this.pos.x) * expandingRatio + this.canW / 2;
-        const y = (convertedVertex.z - this.pos.z) * -expandingRatio + this.canH / 2;
+        const x = (convertedVertex.x - this.pos.x) * this.expandingRatio + this.canW / 2;
+        const y = (convertedVertex.z - this.pos.z) * -this.expandingRatio + this.canH / 2;
         return { x, y };
+    }
+
+    drawVertexes() {
+        for (const vertex of this.importedVertexes) {
+            if (this.plane.isPointInFrontOf(vertex.point) === false) continue;
+            const projectedVertex = this.getProjectedVertex(vertex);
+            if (projectedVertex === null) continue;
+            const convertedVertex = this.getConvertedVertex(projectedVertex);
+            const toDrawVertex = this.getToDrawVertex(convertedVertex);
+
+            const dx = toDrawVertex.x;
+            const dy = toDrawVertex.y;
+
+            drawCircle(this.con, dx, dy, 2.5);
+            this.con.fillStyle = "#fff";
+            this.con.fillText(convertedVertex.i, dx, dy);
+        }
+    }
+
+
+    move() {
+        const v = this.speed / this.fps;
+
+        if (this.key["a"]) {
+            this.pos.x -= cos(this.rz) * v;
+            this.pos.y += sin(this.rz) * v;
+        }
+        if (this.key["d"]) {
+            this.pos.x += cos(this.rz) * v;
+            this.pos.y -= sin(this.rz) * v;
+        }
+        if (this.key["w"]) {
+            this.pos.x += sin(this.rz) * v;
+            this.pos.y += cos(this.rz) * v;
+        }
+        if (this.key["s"]) {
+            this.pos.x -= sin(this.rz) * v;
+            this.pos.y -= cos(this.rz) * v;
+        }
+
+        if (this.key[" "]) this.pos.z += v;
+        if (this.key["Shift"]) this.pos.z -= v;
+
+        const rv = 2;
+        if (this.key["ArrowLeft"]) this.rz -= rv;
+        if (this.key["ArrowRight"]) this.rz += rv;
+        if (this.key["ArrowUp"]) this.rx += rv;
+        if (this.key["ArrowDown"]) this.rx -= rv;
+    }
+
+
+    update() {
+        this.move();
+        this.updateNormalVector();
+        this.updateCornerVectorsFromPos();
+        this.updateCornerPoints();
+        this.updateOnCameraPlaneVector();
+        this.updateFocusPoint();
+        this.updatePlane();
+        this.drawVertexes();
     }
 
 }
