@@ -1,6 +1,9 @@
-import { Vector } from "./math";
 
 
+
+// FPS
+const FPS = 30;
+const MSPF = 1000 / 30;
 
 
 // 空間内におけるカメラの大きさ（メートル）

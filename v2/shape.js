@@ -62,11 +62,14 @@ export class Edge {
     /**
      * 辺と平面の交点が辺上にあるかチェックするメソッド
      * @param {Plane} plane 
-     * @returns {boolean}
+     * @returns {Point|null} 交点があれば交点を返し、なければnullを返す
      */
     isOnIntersectionWithPlane(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
-        return this.isPointInRange(intersection);
+        if (this.isPointInRange(intersection)) {
+            return intersection;
+        }
+        else return null;
     }
 
     /**
@@ -119,6 +122,20 @@ export class HalfLine extends Line {
 
         return innerProduct > 0;
     }
+
+    /**
+     * 半直線と平面の交点が辺上にあるかチェックするメソッド
+     * @param {Plane} plane 
+     * @returns {Point|null} 交点があれば交点を返し、なければnullを返す
+     */
+    isOnIntersectionWithPlane(plane) {
+        const intersection = getIntersectionFromLineAndPlane(this.line, plane);
+        if (this.isPointInRange(intersection)) {
+            return intersection;
+        }
+        else return null;
+    }
+
 }
 console.log(new HalfLine(new Point(0, 0, 0), new Vector(1, 1, 1)));
 
@@ -133,7 +150,7 @@ export class Face {
      * @param {Vertex} vertex1 
      * @param {Vertex} vertex2 
      * @param {Vertex} vertex3 
-     * @param {Array} color 
+     * @param {number[]} color 
      * @param {number} roughness 
      */
     constructor(vertex1, vertex2, vertex3, color, roughness) {
@@ -182,7 +199,7 @@ export class Light {
      * コンストラクタ
      * @param {Point} pos 位置
      * @param {number} power 強さ
-     * @param {Array} color 色
+     * @param {number[]} color 色
      */
     constructor(pos, power, color) {
         this.pos = pos;
@@ -198,30 +215,20 @@ export class Light {
 
 
 /**
- * 辺と面が交差しているかチェックする関数
- * @param {Edge} edge 
+ * 辺または半直線が面と交差しているかチェックする関数
+ * @param {Edge|HalfLine} edgeOrHalfLine 
  * @param {Face} face 
- * @returns {boolean}
+ * @returns {Point|null}
  */
-export function checkDoesIntersectEdgeAndFace(edge, face) {
-    return (
-        // 交点が辺上にあるかどうか
-        edge.isOnIntersectionWithPlane(face.plane) &&
+export function checkDoesIntersectEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
+    // 交点が辺or半直線上にあるかどうか
+    const intersection = edgeOrHalfLine.isOnIntersectionWithPlane(face.plane);
+    if (intersection) {
         // 交点が面上にあるかどうか
-        face.isPointOnFace(getIntersectionFromLineAndPlane(edge.line, face.plane))
-    );
-}
-/**
- * 半直線と面が交差しているかチェックする関数
- * @param {HalfLine} halfLine 
- * @param {Face} face 
- * @returns {boolean}
- */
-export function checkDoesIntersectHalfLineAndFace(halfLine, face) {
-    return (
-        // 交点が半直線上にあるかどうか
-        halfLine.isOnIntersectionWithPlane(face.plane) &&
-        // 交点が面上にあるかどうか
-        face.isPointOnFace(getIntersectionFromLineAndPlane(halfLine.line, face.plane))
-    );
+        if (face.isPointOnFace(intersection)) {
+            return intersection;
+        }
+        else return null;
+    }
+    else return null;
 }

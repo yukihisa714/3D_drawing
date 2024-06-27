@@ -30,7 +30,7 @@ export function min(num1, num2) {
  * 二次元配列を取得する関数
  * @param {number} row 縦
  * @param {number} col 横
- * @returns {Array} 二次元配列
+ * @returns {any[][]} 二次元配列
  */
 export function get2dArray(row, col) {
     const array = [];
@@ -44,9 +44,9 @@ export function get2dArray(row, col) {
 
 /**
  * 二つの色を混ぜる（重ねる）関数
- * @param {Array} color1 合成される色（奥）
- * @param {Array} color2 合成する色（手前）
- * @returns {Array} 合成後の色
+ * @param {number[]} color1 合成される色（奥）
+ * @param {number[]} color2 合成する色（手前）
+ * @returns {number[]} 合成後の色
  */
 export function getMixedColor(color1, color2) {
     const a1 = color1[3];
@@ -288,7 +288,7 @@ export function getSumOf2Vectors(vector1, vector2) {
 }
 /**
  * 複数のベクトルの和を取得する関数
- * @param {Array} vectorsList ベクトルクラスを格納した配列
+ * @param {Vector[]} vectorsList ベクトルクラスを格納した配列
  * @returns {Vector}
  */
 export function getSumOfVectors(vectorsList) {
@@ -360,7 +360,7 @@ export function getLengthFrom2Points(point1, point2) {
  * @param {Vector} pVector s,tで表したいベクトル
  * @param {Vector} aVector 基準のベクトル
  * @param {Vector} bVector 基準のベクトル
- * @returns {Object} {s, t}
+ * @returns {{s: number, t:number}} {s, t}
  */
 export function getSTFrom3Vectors(pVector, aVector, bVector) {
     /**
