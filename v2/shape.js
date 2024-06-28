@@ -78,16 +78,21 @@ export class Edge {
      * @returns {Edge}
      */
     setVertexInFrontOfCamera(plane) {
-        const intersection = getIntersectionFromLineAndPlane(this.line, plane);
-        if (this.isOnIntersectionWithPlane(plane)) {
-            if (!plane.isPointInFrontOf(this.vertex1)) {
-                this.vertex1 = new Vertex(intersection.x, intersection.y, intersection.z);
+        const intersection = this.isOnIntersectionWithPlane(plane);
+        if (intersection !== null) {
+            if (plane.isPointInFrontOf(this.vertex1.point)) {
+                // 交点が面の裏だと判断されてしまうことがあるので補正
+                const fixVector = this.vector.changeLength(-0.0001);
+                intersection.move(fixVector);
+                this.vertex2 = new Vertex(intersection.x, intersection.y, intersection.z, this.vertex2.i);
             }
-            else if (!plane.isPointInFrontOf(this.vertex2)) {
-                this.vertex2 = new Vertex(intersection.x, intersection.y, intersection.z);
+            else {
+                const fixVector = this.vector.changeLength(0.0001);
+                intersection.move(fixVector);
+                this.vertex1 = new Vertex(intersection.x, intersection.y, intersection.z, this.vertex1.i);
             }
         }
-        return this.getClone();
+        return new Edge(this.vertex1, this.vertex2);
     }
 }
 
@@ -137,7 +142,6 @@ export class HalfLine extends Line {
     }
 
 }
-console.log(new HalfLine(new Point(0, 0, 0), new Vector(1, 1, 1)));
 
 
 

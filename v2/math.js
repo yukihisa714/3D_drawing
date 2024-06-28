@@ -61,7 +61,6 @@ export function getMixedColor(color1, color2) {
     newColor[3] = a;
     return newColor;
 }
-console.log(getMixedColor([255, 255, 255, 1], [0, 255, 0, 0.5]));
 
 
 
@@ -150,7 +149,7 @@ export class Vector {
     /**
      * 指定した長さに変えるメソッド
      * 自身の長さを更新し、更に新しいVectorクラスを返す
-     * @param {number} newLength 新しい長さ（正の数）
+     * @param {number} newLength 新しい長さ
      * @returns {Vector}
      */
     changeLength(newLength) {

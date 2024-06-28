@@ -1,6 +1,6 @@
 import { Point, Vector, cos, getPlaneFromVectorAndPoint, getSumOfVectors, getVectorFrom2Points, sin } from "./math.js";
-import { Edge, Face, HalfLine, Light, Vertex, getFaceFrom3Points } from "./shape.js";
-import { drawCircle } from "./context.js";
+import { Edge, Face, HalfLine, Light, Vertex } from "./shape.js";
+import { drawCircle, drawLine } from "./context.js";
 
 
 
@@ -51,6 +51,7 @@ export class Camera {
         this.lights = lights;
 
         this.importShapes();
+        console.log(this.importedEdges);
         this.update();
     }
 
@@ -193,30 +194,51 @@ export class Camera {
     }
 
     /**
-     * 座標変換した頂点の描画位置を取得するメソッド
-     * @param {Vertex} convertedVertex 座標変換済みの頂点
-     * @returns {{x: number, y: number}} x,y座標のみ
+     * 頂点の描画位置を取得するメソッド
+     * @param {Vertex} vertex 頂点
+     * @returns {{x: number, y: number}|null} x,y座標のみ
      */
-    getToDrawVertex(convertedVertex) {
+    getToDrawVertex(vertex) {
+        const projectedVertex = this.getProjectedVertex(vertex);
+        if (projectedVertex === null) return null;
+        const convertedVertex = this.getConvertedVertex(projectedVertex);
+
         const x = (convertedVertex.x - this.pos.x) * this.expandingRatio + this.canW / 2;
         const y = (convertedVertex.z - this.pos.z) * -this.expandingRatio + this.canH / 2;
+
         return { x, y };
     }
 
     drawVertexes() {
         for (const vertex of this.importedVertexes) {
-            if (this.plane.isPointInFrontOf(vertex.point) === false) continue;
-            const projectedVertex = this.getProjectedVertex(vertex);
-            if (projectedVertex === null) continue;
-            const convertedVertex = this.getConvertedVertex(projectedVertex);
-            const toDrawVertex = this.getToDrawVertex(convertedVertex);
+            const toDrawVertex = this.getToDrawVertex(vertex);
+            if (toDrawVertex === null) continue;
 
-            const dx = toDrawVertex.x;
-            const dy = toDrawVertex.y;
+            const { x: dx, y: dy } = toDrawVertex;
 
             drawCircle(this.con, dx, dy, 2.5);
             this.con.fillStyle = "#fff";
-            this.con.fillText(convertedVertex.i, dx, dy);
+            this.con.fillText(vertex.i, dx, dy);
+        }
+    }
+
+    drawEdges() {
+        for (const edge of this.importedEdges) {
+            const convertedEdge = edge.getClone().setVertexInFrontOfCamera(this.plane);
+
+            const vertex1 = convertedEdge.vertex1;
+            const vertex2 = convertedEdge.vertex2;
+
+            const toDrawVertex1 = this.getToDrawVertex(vertex1);
+            const toDrawVertex2 = this.getToDrawVertex(vertex2);
+            if (toDrawVertex1 === null && toDrawVertex2 === null) continue;
+
+            const dx1 = toDrawVertex1.x;
+            const dy1 = toDrawVertex1.y;
+            const dx2 = toDrawVertex2.x;
+            const dy2 = toDrawVertex2.y;
+
+            drawLine(this.con, dx1, dy1, dx2, dy2);
         }
     }
 
@@ -260,6 +282,7 @@ export class Camera {
         this.updateOnCameraPlaneVector();
         this.updateFocusPoint();
         this.updatePlane();
+        this.drawEdges();
         this.drawVertexes();
     }
 
