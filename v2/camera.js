@@ -1,5 +1,5 @@
 import { Point, Vector, cos, getPlaneFromVectorAndPoint, getSumOfVectors, getVectorFrom2Points, sin } from "./math.js";
-import { Edge, Face, HalfLine, Light, Vertex } from "./shape.js";
+import { Edge, Face, HalfLine, Light, Vertex, getIntersectionsEdgeOrHalfLineAndFaces } from "./shape.js";
 import { drawCircle, drawLine } from "./context.js";
 
 
@@ -44,6 +44,7 @@ export class Camera {
 
         this.ctxs = ctxs;
         this.con = this.ctxs[0];
+        this.con2 = this.ctxs[1];
 
         this.vertexes = vertexes;
         this.edges = edges;
@@ -149,7 +150,7 @@ export class Camera {
         if (this.plane.isPointInFrontOf(vertex.point) === false) return null;
         const rayVector = getVectorFrom2Points(this.focus, vertex.point);
         const rayHalfLine = new HalfLine(this.focus, rayVector);
-        const intersection = rayHalfLine.isOnIntersectionWithPlane(this.plane);
+        const intersection = rayHalfLine.getIntersectionWithPlane(this.plane);
         const intersectionVertex = new Vertex(intersection.x, intersection.y, intersection.z, vertex.i);
 
         return intersectionVertex;
@@ -224,13 +225,12 @@ export class Camera {
 
     drawEdges() {
         for (const edge of this.importedEdges) {
+            // カメラ平面と交わる辺は、裏側の頂点をカメラ平面上に修正
             const convertedEdge = edge.getClone().setVertexInFrontOfCamera(this.plane);
-
-            const vertex1 = convertedEdge.vertex1;
-            const vertex2 = convertedEdge.vertex2;
-
-            const toDrawVertex1 = this.getToDrawVertex(vertex1);
-            const toDrawVertex2 = this.getToDrawVertex(vertex2);
+            // 頂点を座標変換
+            const toDrawVertex1 = this.getToDrawVertex(convertedEdge.vertex1);
+            const toDrawVertex2 = this.getToDrawVertex(convertedEdge.vertex2);
+            // toDrawVertexがnull つまり 頂点が両方カメラ平面の裏にあるときcontinue
             if (toDrawVertex1 === null && toDrawVertex2 === null) continue;
 
             const dx1 = toDrawVertex1.x;
@@ -239,6 +239,40 @@ export class Camera {
             const dy2 = toDrawVertex2.y;
 
             drawLine(this.con, dx1, dy1, dx2, dy2);
+        }
+    }
+
+    drawFace() {
+        for (let y = 0; y < this.canH; y++) {
+            for (let x = 0; x < this.canW; x++) {
+                // 焦点から特定のピクセルへの半直線
+                const viewLayHalfLine = this.getCameraViewLayHalfLine(x, y);
+                // 半直線と面の交点（距離の近い順にソート）
+                const intersectionsWithViewLayAndFaces = getIntersectionsEdgeOrHalfLineAndFaces(viewLayHalfLine, this.importedFaces);
+                // どの面とも交わらなければcontinue
+                if (intersectionsWithViewLayAndFaces.length === 0) {
+                    continue;
+                }
+
+                // 交点を順に検査し、不透明度が1の面の交点より遠くの交点の要素を削除
+                let i = 0;
+                while (i < intersectionsWithViewLayAndFaces.length) {
+                    if (intersectionsWithViewLayAndFaces[i].face.color[3] === 1) {
+                        break;
+                    }
+                    if (intersectionsWithViewLayAndFaces.length === i + 1) {
+                        break;
+                    }
+                    i++;
+                }
+                intersectionsWithViewLayAndFaces.splice(i + 1);
+
+                for (let k = i; k >= 0; k--) {
+                    const color = intersectionsWithViewLayAndFaces[k].face.color;
+                    this.con2.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
+                    this.con2.fillRect(x, y, 1, 1);
+                }
+            }
         }
     }
 
@@ -284,6 +318,7 @@ export class Camera {
         this.updatePlane();
         this.drawEdges();
         this.drawVertexes();
+        this.drawFace();
     }
 
 }

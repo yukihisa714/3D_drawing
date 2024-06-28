@@ -1,4 +1,4 @@
-import { Line, Plane, Point, Vector, getCrossProduct, getInnerProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
+import { Line, Plane, Point, Vector, getCrossProduct, getInnerProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
 
 
 /**
@@ -64,7 +64,7 @@ export class Edge {
      * @param {Plane} plane 
      * @returns {Point|null} 交点があれば交点を返し、なければnullを返す
      */
-    isOnIntersectionWithPlane(plane) {
+    getIntersectionWithPlane(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
         if (this.isPointInRange(intersection)) {
             return intersection;
@@ -78,7 +78,7 @@ export class Edge {
      * @returns {Edge}
      */
     setVertexInFrontOfCamera(plane) {
-        const intersection = this.isOnIntersectionWithPlane(plane);
+        const intersection = this.getIntersectionWithPlane(plane);
         if (intersection !== null) {
             if (plane.isPointInFrontOf(this.vertex1.point)) {
                 // 交点が面の裏だと判断されてしまうことがあるので補正
@@ -133,7 +133,7 @@ export class HalfLine extends Line {
      * @param {Plane} plane 
      * @returns {Point|null} 交点があれば交点を返し、なければnullを返す
      */
-    isOnIntersectionWithPlane(plane) {
+    getIntersectionWithPlane(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
         if (this.isPointInRange(intersection)) {
             return intersection;
@@ -224,9 +224,9 @@ export class Light {
  * @param {Face} face 
  * @returns {Point|null}
  */
-export function checkDoesIntersectEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
+export function getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
     // 交点が辺or半直線上にあるかどうか
-    const intersection = edgeOrHalfLine.isOnIntersectionWithPlane(face.plane);
+    const intersection = edgeOrHalfLine.getIntersectionWithPlane(face.plane);
     if (intersection) {
         // 交点が面上にあるかどうか
         if (face.isPointOnFace(intersection)) {
@@ -236,6 +236,43 @@ export function checkDoesIntersectEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
     }
     else return null;
 }
+
+/**
+ * 辺または半直線との交点を面の配列から取得する
+ * @param {Edge|HalfLine} edgeOrHalfLine 
+ * @param {Face[]} faces 面の配列
+ * @returns {{face: Face, intersection: Point, length: number}[]} vertex1から交点までの距離の昇順(小さい順)でソートされている
+ */
+export function getIntersectionsEdgeOrHalfLineAndFaces(edgeOrHalfLine, faces) {
+    const returnsList = [];
+    for (const face of faces) {
+        const intersection = getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face);
+        // どの面とも交わらなければcontinue
+        if (intersection === null) continue;
+        let length;
+        if (edgeOrHalfLine instanceof Edge) {
+            length = getLengthFrom2Points(edgeOrHalfLine.vertex1.point, intersection);
+        }
+        else if (edgeOrHalfLine instanceof HalfLine) {
+            length = getLengthFrom2Points(edgeOrHalfLine.point, intersection);
+        }
+        returnsList.push({
+            face: face,
+            intersection: intersection,
+            length: length,
+        });
+    }
+    // 交点までの距離をもとに昇順ソート
+    returnsList.sort((a, b) => {
+        if (a.length < b.length) return -1;
+        if (a.length > b.length) return 1;
+        return 0;
+    });
+
+    return returnsList;
+}
+
+
 
 /**
  * ポイントからとりあえず頂点を取得する関数

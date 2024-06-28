@@ -20,15 +20,19 @@ const expandingRatio = 50;
 const CAN_W = CAMERA_W * expandingRatio;
 const CAN_H = CAMERA_H * expandingRatio;
 
-const can = document.getElementById("camera-view");
+const can = document.getElementById("wireframe-camera-view");
 can.width = CAN_W;
 can.height = CAN_H;
 can.style.background = "#888";
-
 const con = can.getContext("2d");
 
+const can2 = document.getElementById("render-camera-view");
+can2.width = CAN_W;
+can2.height = CAN_H;
+can2.style.background = "#888";
+const con2 = can2.getContext("2d");
 
-const ctxs = [con];
+const ctxs = [con, con2];
 
 
 const key = {};
@@ -229,6 +233,7 @@ function mainLoop() {
     const st = performance.now();
 
     con.clearRect(0, 0, CAN_W, CAN_H);
+    con2.clearRect(0, 0, CAN_W, CAN_H);
 
     CAMERA.update();
 
