@@ -242,7 +242,7 @@ export class Camera {
         }
     }
 
-    drawFace() {
+    drawFaces() {
         for (let y = 0; y < this.canH; y++) {
             for (let x = 0; x < this.canW; x++) {
                 // 焦点から特定のピクセルへの半直線
@@ -253,7 +253,6 @@ export class Camera {
                 if (intersectionsWithViewLayAndFaces.length === 0) {
                     continue;
                 }
-
                 // 交点を順に検査し、不透明度が1の面の交点より遠くの交点の要素を削除
                 let i = 0;
                 while (i < intersectionsWithViewLayAndFaces.length) {
@@ -266,11 +265,10 @@ export class Camera {
                     i++;
                 }
                 intersectionsWithViewLayAndFaces.splice(i + 1);
-
                 // 配列の最後（唯一の不透明度1）の交点と面
                 const opaqueIntersection = intersectionsWithViewLayAndFaces[i].intersection.getClone();
-                const opaqueFace = intersectionsWithViewLayAndFaces[i].face.getClone();
-
+                // const opaqueFace = intersectionsWithViewLayAndFaces[i].face.getClone();
+                // 交点を含む面がライトまでの障害物にならないようにカメラ方向に少し補正
                 const fixVector = viewLayHalfLine.vector.getClone().changeLength(-0.0001);
                 opaqueIntersection.move(fixVector);
 
@@ -291,7 +289,6 @@ export class Camera {
                 if (allBrightness > 1) {
                     allBrightness = 1;
                 }
-
                 // 一番奥の面を描画
                 const baseColor = intersectionsWithViewLayAndFaces[i].face.color;
                 this.con2.fillStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${baseColor[3]})`;
@@ -351,7 +348,7 @@ export class Camera {
         this.updatePlane();
         this.drawEdges();
         this.drawVertexes();
-        this.drawFace();
+        this.drawFaces();
     }
 
 }

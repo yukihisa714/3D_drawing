@@ -19,26 +19,6 @@ export function tan(degree) {
     return Math.tan(degreesToRadians(degree));
 }
 
-export function max(num1, num2) {
-    return Math.max(num1, num2);
-}
-export function min(num1, num2) {
-    return Math.min(num1, num2);
-}
-
-/**
- * 二次元配列を取得する関数
- * @param {number} row 縦
- * @param {number} col 横
- * @returns {any[][]} 二次元配列
- */
-export function get2dArray(row, col) {
-    const array = [];
-    for (let r = 0; r < row; r++) {
-        array[r] = new Array(col);
-    }
-    return array;
-}
 
 
 
