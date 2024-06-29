@@ -200,7 +200,7 @@ console.log(FACES[0]);
 
 
 const LIGHTS = [
-    new Light(new Point(-4, 4, 4), 10, [255, 255, 255]),
+    new Light(new Point(-4, 4, 4), 20, [255, 255, 255]),
     // new Light(new Point(-2.5, 2.1, 3), 7, [255, 255, 255]),
 ];
 

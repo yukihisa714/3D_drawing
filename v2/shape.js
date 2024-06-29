@@ -214,6 +214,42 @@ export class Light {
     getClone() {
         return new Light(this.pos, this.power, this.color);
     }
+
+    /**
+     * 距離から明るさを取得
+     * @param {number} length 
+     * @returns {number}
+     */
+    getBrightness(length) {
+        if (length > this.power) {
+            return 0;
+        }
+        /**
+         * アステロイド
+         * x = a*cos^3(t), y = b*sin^3(t)
+         * 
+         * x = power * cos^3(t)
+         * x / power = cos^3(t)
+         * (x / power)^(2/3) = cos^2(t)
+         * (x / power)^(2/3) = 1 - sin^2(t)
+         * 1 - (x / power)^(2/3) = sin^2(t)
+         * (1 - (x / power)^(2/3))^(3/2) = sin^3(t) = y
+         * y = (1 - (x / power)^(2/3))^(3/2)
+         */
+        const brightness = (1 - (length / this.power) ** (2 / 3)) ** (3 / 2);
+        return brightness;
+    }
+
+    /**
+     * 点の明るさを取得
+     * @param {Point} point 
+     * @returns {number}
+     */
+    getBrightnessFromPoint(point) {
+        const length = getLengthFrom2Points(this.pos, point);
+        const brightness = this.getBrightness(length);
+        return brightness;
+    }
 }
 
 
@@ -281,6 +317,18 @@ export function getIntersectionsEdgeOrHalfLineAndFaces(edgeOrHalfLine, faces) {
  */
 export function getVertexFromPoint(point) {
     return new Vertex(point.x, point.y, point.z);
+}
+/**
+ * ポイントから辺を取得する関数
+ * @param {Point} point1 
+ * @param {Point} point2 
+ * @returns {Edge}
+ */
+export function getEdgeFromPoints(point1, point2) {
+    return new Edge(
+        getVertexFromPoint(point1),
+        getVertexFromPoint(point2),
+    );
 }
 /**
  * ポイントから面を取得する関数
