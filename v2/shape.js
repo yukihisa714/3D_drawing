@@ -4,7 +4,7 @@ import { Line, Plane, Point, Vector, getCrossProduct, getInnerProduct, getInters
 /**
  * 頂点のクラス
  */
-export class Vertex extends Point {
+export class Vertex {
     /**
      * コンストラクタ
      * @param {number} x 座標
@@ -13,13 +13,30 @@ export class Vertex extends Point {
      * @param {number} i 番号
      */
     constructor(x, y, z, i) {
-        super(x, y, z);
+        this.x = x;
+        this.y = y;
+        this.z = z;
         this.i = i;
         this.point = new Point(x, y, z);
     }
 
     getClone() {
         return new Vertex(this.x, this.y, this.z, this.i);
+    }
+
+    /**
+     * 頂点をベクトルに従って動かすメソッド
+     * 自身の要素を変更し、更に新しいVertexクラスを返す
+     * @param {Vector} vector 移動ベクトル
+     * @returns {Vertex}
+     */
+    move(vector) {
+        this.x += vector.x;
+        this.y += vector.y;
+        this.z += vector.z;
+        this.point.move(vector);
+
+        return this.getClone();
     }
 }
 

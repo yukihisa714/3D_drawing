@@ -231,7 +231,7 @@ export class Camera {
             const toDrawVertex1 = this.getToDrawVertex(convertedEdge.vertex1);
             const toDrawVertex2 = this.getToDrawVertex(convertedEdge.vertex2);
             // toDrawVertexがnull つまり 頂点が両方カメラ平面の裏にあるときcontinue
-            if (toDrawVertex1 === null && toDrawVertex2 === null) continue;
+            if (toDrawVertex1 === null) continue;
 
             const dx1 = toDrawVertex1.x;
             const dy1 = toDrawVertex1.y;
@@ -273,7 +273,7 @@ export class Camera {
             for (let x = 0; x < this.canW; x++) {
                 // 焦点から特定のピクセルへの半直線
                 const viewLayHalfLine = this.getCameraViewLayHalfLine(x, y);
-                // 半直線と面の交点（距離の近い順にソート）
+                // 半直線と面の交点（距離の近い順にソートされている）
                 const intersectionsWithViewLayAndFaces = getIntersectionsEdgeOrHalfLineAndFaces(viewLayHalfLine, this.importedFaces);
                 // どの面とも交わらなければcontinue
                 if (intersectionsWithViewLayAndFaces.length === 0) {
@@ -291,6 +291,7 @@ export class Camera {
                     i++;
                 }
                 intersectionsWithViewLayAndFaces.splice(i + 1);
+
                 // 配列の最後（唯一の不透明度1）の交点と面
                 const opaqueIntersection = intersectionsWithViewLayAndFaces[i].intersection.getClone();
                 // const opaqueFace = intersectionsWithViewLayAndFaces[i].face.getClone();

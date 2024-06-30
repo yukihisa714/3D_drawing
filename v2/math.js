@@ -246,7 +246,7 @@ export class Plane {
     /**
      * 点が平面の表と裏どちらにあるかを求めるメソッド
      * @param {Point} point 対象の点
-     * @returns {Boolean} 表または平面上にあればtrue, 裏にあればfalse
+     * @returns {boolean} 表または平面上にあればtrue, 裏にあればfalse
      */
     isPointInFrontOf(point) {
         const result = this.substitute(point.x, point.y, point.z);
@@ -256,15 +256,6 @@ export class Plane {
 
 
 
-/**
- * ２つのベクトルの和を取得する関数
- * @param {Vector} vector1 
- * @param {Vector} vector2 
- * @returns {Vector}
- */
-export function getSumOf2Vectors(vector1, vector2) {
-    return new Vector(vector1.x + vector2.x, vector1.y + vector2.y, vector1.z + vector2.z);
-}
 /**
  * 複数のベクトルの和を取得する関数
  * @param {Vector[]} vectorsList ベクトルクラスを格納した配列
