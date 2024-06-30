@@ -295,7 +295,7 @@ export function getIntersectionsEdgeOrHalfLineAndFaces(edgeOrHalfLine, faces) {
         returnsList.push({
             face: face,
             intersection: intersection,
-            length: length,
+            length,
         });
     }
     // 交点までの距離をもとに昇順ソート

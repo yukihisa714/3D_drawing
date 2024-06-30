@@ -242,6 +242,32 @@ export class Camera {
         }
     }
 
+    /**
+     * 点における明るさを取得する
+     * @param {Point} point 
+     * @returns {number}
+     */
+    getBrightnessOfPoint(point) {
+        let allBrightness = 0;
+        for (const light of this.importedLights) {
+            // ライトまでの辺
+            const edgeFromIntersectionToLight = getEdgeFromPoints(point, light.pos);
+            // ライトまでの障害物
+            const obstacleIntersections = getIntersectionsEdgeOrHalfLineAndFaces(edgeFromIntersectionToLight, this.importedFaces);
+            // ライトからの距離での明るさ
+            let brightness = light.getBrightnessFromPoint(point);
+            // 障害物による明るさ
+            for (const intersection of obstacleIntersections) {
+                brightness *= (1 - intersection.face.color[3]);
+            }
+            allBrightness += brightness;
+        }
+        if (allBrightness > 1) {
+            allBrightness = 1;
+        }
+        return allBrightness;
+    }
+
     drawFaces() {
         for (let y = 0; y < this.canH; y++) {
             for (let x = 0; x < this.canW; x++) {
@@ -255,7 +281,7 @@ export class Camera {
                 }
                 // 交点を順に検査し、不透明度が1の面の交点より遠くの交点の要素を削除
                 let i = 0;
-                while (i < intersectionsWithViewLayAndFaces.length) {
+                while (true) {
                     if (intersectionsWithViewLayAndFaces[i].face.color[3] === 1) {
                         break;
                     }
@@ -272,29 +298,15 @@ export class Camera {
                 const fixVector = viewLayHalfLine.vector.getClone().changeLength(-0.0001);
                 opaqueIntersection.move(fixVector);
 
-                let allBrightness = 0;
-                for (const light of this.importedLights) {
-                    // ライトまでの辺
-                    const edgeFromIntersectionToLight = getEdgeFromPoints(opaqueIntersection, light.pos);
-                    // ライトまでの障害物
-                    const obstacleIntersections = getIntersectionsEdgeOrHalfLineAndFaces(edgeFromIntersectionToLight, this.importedFaces);
-                    // ライトからの距離での明るさ
-                    let brightness = light.getBrightnessFromPoint(opaqueIntersection);
-                    // 障害物による明るさ
-                    for (const info of obstacleIntersections) {
-                        brightness *= (1 - info.face.color[3]);
-                    }
-                    allBrightness += brightness;
-                }
-                if (allBrightness > 1) {
-                    allBrightness = 1;
-                }
+                // 点における明るさ
+                const brightness = this.getBrightnessOfPoint(opaqueIntersection);
+
                 // 一番奥の面を描画
                 const baseColor = intersectionsWithViewLayAndFaces[i].face.color;
                 this.con2.fillStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${baseColor[3]})`;
                 this.con2.fillRect(x, y, 1, 1);
                 // 影を重ねる
-                this.con2.fillStyle = `rgba(0, 0, 0, ${1 - allBrightness})`;
+                this.con2.fillStyle = `rgba(0, 0, 0, ${1 - brightness})`;
                 this.con2.fillRect(x, y, 1, 1);
                 // 半透明の面を重ねる
                 for (let k = i - 1; k >= 0; k--) {
