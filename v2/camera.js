@@ -292,25 +292,32 @@ export class Camera {
                 }
                 intersectionsWithViewLayAndFaces.splice(i + 1);
 
-                // 配列の最後（唯一の不透明度1）の交点と面
-                const opaqueIntersection = intersectionsWithViewLayAndFaces[i].intersection.getClone();
-                // const opaqueFace = intersectionsWithViewLayAndFaces[i].face.getClone();
-                // 交点を含む面がライトまでの障害物にならないようにカメラ方向に少し補正
-                const fixVector = viewLayHalfLine.vector.getClone().changeLength(-0.0001);
-                opaqueIntersection.move(fixVector);
+                // 一番奥の面が不透明のとき
+                if (intersectionsWithViewLayAndFaces[i].face.color[3] === 1) {
+                    // 配列の最後（唯一の不透明度1）の交点と面
+                    const opaqueIntersection = intersectionsWithViewLayAndFaces[i].intersection.getClone();
+                    // const opaqueFace = intersectionsWithViewLayAndFaces[i].face.getClone();
+                    // 交点を含む面がライトまでの障害物にならないようにカメラ方向に少し補正
+                    const fixVector = viewLayHalfLine.vector.getClone().changeLength(-0.0001);
+                    opaqueIntersection.move(fixVector);
 
-                // 点における明るさ
-                const brightness = this.getBrightnessOfPoint(opaqueIntersection);
+                    // 点における明るさ
+                    const brightness = this.getBrightnessOfPoint(opaqueIntersection);
 
-                // 一番奥の面を描画
-                const baseColor = intersectionsWithViewLayAndFaces[i].face.color;
-                this.con2.fillStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, ${baseColor[3]})`;
-                this.con2.fillRect(x, y, 1, 1);
-                // 影を重ねる
-                this.con2.fillStyle = `rgba(0, 0, 0, ${1 - brightness})`;
-                this.con2.fillRect(x, y, 1, 1);
+                    // 一番奥の面を描画
+                    const baseColor = intersectionsWithViewLayAndFaces[i].face.color;
+                    this.con2.fillStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, 1)`;
+                    this.con2.fillRect(x, y, 1, 1);
+                    // 影を重ねる
+                    this.con2.fillStyle = `rgba(0, 0, 0, ${1 - brightness})`;
+                    this.con2.fillRect(x, y, 1, 1);
+
+                    // 奥の面を描画したので減らしておく
+                    i--;
+                }
+
                 // 半透明の面を重ねる
-                for (let k = i - 1; k >= 0; k--) {
+                for (let k = i; k >= 0; k--) {
                     const color = intersectionsWithViewLayAndFaces[k].face.color;
                     this.con2.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
                     this.con2.fillRect(x, y, 1, 1);

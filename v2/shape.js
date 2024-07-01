@@ -238,22 +238,13 @@ export class Light {
      * @returns {number}
      */
     getBrightness(length) {
-        if (length > this.power) {
-            return 0;
-        }
         /**
-         * アステロイド
-         * x = a*cos^3(t), y = b*sin^3(t)
-         * 
-         * x = power * cos^3(t)
-         * x / power = cos^3(t)
-         * (x / power)^(2/3) = cos^2(t)
-         * (x / power)^(2/3) = 1 - sin^2(t)
-         * 1 - (x / power)^(2/3) = sin^2(t)
-         * (1 - (x / power)^(2/3))^(3/2) = sin^3(t) = y
-         * y = (1 - (x / power)^(2/3))^(3/2)
+         * ステロイドはやっぱだめ
+         * 逆二乗からは程遠い
+         * y = t^2 / (x + t)^2
          */
-        const brightness = (1 - (length / this.power) ** (2 / 3)) ** (3 / 2);
+
+        const brightness = this.power ** 2 / (length + this.power) ** 2;
         return brightness;
     }
 
