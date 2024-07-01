@@ -42,6 +42,22 @@ export function getMixedColor(color1, color2) {
     return newColor;
 }
 
+export class Color {
+    /**
+     * 
+     * @param {number} r 0~255
+     * @param {number} g 0~255
+     * @param {number} b 0~255
+     * @param {number} a 0~1
+     */
+    constructor(r, g, b, a) {
+        this.r = r;
+        this.g = g;
+        this.b = b;
+        this.a = a;
+    }
+}
+
 
 
 /**

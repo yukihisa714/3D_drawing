@@ -1,4 +1,4 @@
-import { Point } from "./math.js";
+import { Color, Point } from "./math.js";
 import { Edge, Face, Light, Vertex } from "./shape.js";
 import { Camera } from "./camera.js";
 
@@ -193,9 +193,10 @@ for (let i = 0; i < FACE_INDEXES_LIST.length; i++) {
     const v1 = v[0];
     const v2 = v[1];
     const v3 = v[2];
-    FACES.push(new Face(VERTEXES[v1], VERTEXES[v2], VERTEXES[v3], FACE_COLORS_LIST[i][0], FACE_COLORS_LIST[i][1]));
+
+    const color = new Color(...FACE_COLORS_LIST[i][0]);
+    FACES.push(new Face(VERTEXES[v1], VERTEXES[v2], VERTEXES[v3], color, FACE_COLORS_LIST[i][1]));
 }
-console.log(FACES[0]);
 
 
 

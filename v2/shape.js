@@ -1,4 +1,4 @@
-import { Line, Plane, Point, Vector, getCrossProduct, getInnerProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
+import { Color, Line, Plane, Point, Vector, getCrossProduct, getInnerProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
 
 
 /**
@@ -171,7 +171,7 @@ export class Face {
      * @param {Vertex} vertex1 
      * @param {Vertex} vertex2 
      * @param {Vertex} vertex3 
-     * @param {number[]} color 
+     * @param {Color} color 
      * @param {number} roughness 
      */
     constructor(vertex1, vertex2, vertex3, color, roughness) {

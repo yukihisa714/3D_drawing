@@ -52,7 +52,6 @@ export class Camera {
         this.lights = lights;
 
         this.importShapes();
-        console.log(this.importedEdges);
         this.update();
     }
 
@@ -258,7 +257,7 @@ export class Camera {
             let brightness = light.getBrightnessFromPoint(point);
             // 障害物による明るさ
             for (const intersection of obstacleIntersections) {
-                brightness *= (1 - intersection.face.color[3]);
+                brightness *= (1 - intersection.face.color.a);
             }
             allBrightness += brightness;
         }
@@ -282,7 +281,7 @@ export class Camera {
                 // 交点を順に検査し、不透明度が1の面の交点より遠くの交点の要素を削除
                 let i = 0;
                 while (true) {
-                    if (intersectionsWithViewLayAndFaces[i].face.color[3] === 1) {
+                    if (intersectionsWithViewLayAndFaces[i].face.color.a === 1) {
                         break;
                     }
                     if (intersectionsWithViewLayAndFaces.length === i + 1) {
@@ -293,7 +292,7 @@ export class Camera {
                 intersectionsWithViewLayAndFaces.splice(i + 1);
 
                 // 一番奥の面が不透明のとき
-                if (intersectionsWithViewLayAndFaces[i].face.color[3] === 1) {
+                if (intersectionsWithViewLayAndFaces[i].face.color.a === 1) {
                     // 配列の最後（唯一の不透明度1）の交点と面
                     const opaqueIntersection = intersectionsWithViewLayAndFaces[i].intersection.getClone();
                     // const opaqueFace = intersectionsWithViewLayAndFaces[i].face.getClone();
@@ -306,7 +305,7 @@ export class Camera {
 
                     // 一番奥の面を描画
                     const baseColor = intersectionsWithViewLayAndFaces[i].face.color;
-                    this.con2.fillStyle = `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, 1)`;
+                    this.con2.fillStyle = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, 1)`;
                     this.con2.fillRect(x, y, 1, 1);
                     // 影を重ねる
                     this.con2.fillStyle = `rgba(0, 0, 0, ${1 - brightness})`;
@@ -319,7 +318,7 @@ export class Camera {
                 // 半透明の面を重ねる
                 for (let k = i; k >= 0; k--) {
                     const color = intersectionsWithViewLayAndFaces[k].face.color;
-                    this.con2.fillStyle = `rgba(${color[0]}, ${color[1]}, ${color[2]}, ${color[3]})`;
+                    this.con2.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
                     this.con2.fillRect(x, y, 1, 1);
                 }
             }
