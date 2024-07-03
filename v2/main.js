@@ -75,6 +75,10 @@ const VERTEXES = [
     new Vertex(-3, 10, -1),
     new Vertex(-1, 10, 3),
     new Vertex(1, 10, -1),
+
+    new Vertex(-1.5, 3, 0),
+    new Vertex(0, 3, 2),
+    new Vertex(2, 1.5, -0.5),
 ];
 
 for (let i = 0; i < VERTEXES.length; i++) {
@@ -120,6 +124,10 @@ const EDGE_INDEXES_LIST = [
     // [3, 8],
     // [4, 5],
     // [3, 6],
+
+    [24, 25],
+    [25, 26],
+    [26, 24],
 ];
 
 const EDGES = [];
@@ -158,6 +166,8 @@ const FACE_INDEXES_LIST = [
     [17, 19, 20],
 
     [21, 22, 23],
+
+    [24, 25, 26],
 ];
 
 const FACE_COLORS_LIST = [
@@ -183,6 +193,8 @@ const FACE_COLORS_LIST = [
     [[255, 255, 255, 1], 1],
     [[255, 255, 255, 1], 1],
     [[255, 255, 255, 1], 1],
+
+    [[255, 255, 255, 1], 0],
 
     [[255, 255, 255, 1], 0],
 ];
