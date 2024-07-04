@@ -242,6 +242,9 @@ const CAMERA = new Camera(
 );
 
 
+let frame = 0;
+const zeroFrameTime = performance.now();
+
 function mainLoop() {
     const st = performance.now();
 
@@ -254,6 +257,9 @@ function mainLoop() {
     con.fillStyle = "#fff";
     con.fillText(`${((et - st) * 100 | 0) / 100}ms`, 5, 10);
 
+    frame++;
+
+    // con.fillText(`${((performance.now() - zeroFrameTime) / frame * 100 | 0) / 100}ms`, 5, CAN_H - 2);
 }
 
 // mainLoop();
