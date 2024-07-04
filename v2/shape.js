@@ -182,8 +182,8 @@ export class Face {
         this.color = color;
         this.roughness = roughness;
 
-        this.vector1 = getVectorFrom2Points(this.vertex1, this.vertex2);
-        this.vector2 = getVectorFrom2Points(this.vertex1, this.vertex3);
+        this.vector1 = getVectorFrom2Points(this.vertex1.point, this.vertex2.point);
+        this.vector2 = getVectorFrom2Points(this.vertex1.point, this.vertex3.point);
 
         this.normalVector = getCrossProduct(this.vector1, this.vector2);
 
@@ -201,7 +201,7 @@ export class Face {
      * @returns {boolean}
      */
     isPointOnFace(point) {
-        const ST = getSTFrom3Vectors(getVectorFrom2Points(this.vertex1, point), this.vector1, this.vector2);
+        const ST = getSTFrom3Vectors(getVectorFrom2Points(this.vertex1.point, point), this.vector1, this.vector2);
 
         const s = ST.s;
         const t = ST.t;
@@ -300,11 +300,7 @@ export function getIntersectionsEdgeOrHalfLineAndFaces(edgeOrHalfLine, faces) {
         else if (edgeOrHalfLine instanceof HalfLine) {
             length = getLengthFrom2Points(edgeOrHalfLine.point, intersection);
         }
-        returnsList.push({
-            face: face,
-            intersection: intersection,
-            length,
-        });
+        returnsList.push({ face, intersection, length });
     }
     // 交点までの距離をもとに昇順ソート
     returnsList.sort((a, b) => {
