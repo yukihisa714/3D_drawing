@@ -203,16 +203,6 @@ export class Face {
             Math.min(vertex1.z, vertex2.z, vertex3.z),
         );
 
-        const range = [
-            this.max,
-            new Point(this.max.x, this.min.y, this.max.z),
-            new Point(this.min.x, this.min.y, this.max.z),
-            new Point(this.max.x, this.max.y, this.max.z),
-            this.min,
-            new Point(this.max.x, this.min.y, this.min.z),
-            new Point(this.min.x, this.min.y, this.min.z),
-            new Point(this.max.x, this.max.y, this.min.z),
-        ];
     }
 
     getClone() {
@@ -294,10 +284,6 @@ export class Light {
  * @returns {Point|null}
  */
 export function getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
-    // 面が範囲外のときreturn null
-    if (edgeOrHalfLine instanceof HalfLine) {
-        if (!edgeOrHalfLine.isPointInRange(face.max) && !edgeOrHalfLine.isPointInRange(face.min)) return null;
-    }
     // 辺or半直線と面の交点
     const intersection = edgeOrHalfLine.getIntersectionWithPlane(face.plane);
     // const p = edgeOrHalfLine.getIntersectionWithPlane(face.plane);
