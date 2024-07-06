@@ -300,16 +300,12 @@ export class Camera {
                     const fixVector = viewLayHalfLine.vector.getClone().changeLength(-0.0001);
                     opaqueIntersection.move(fixVector);
 
-                    // 一番奥の面を描画
-                    const baseColor = intersectionsWithViewLayAndFaces[i].face.color;
-                    this.con2.fillStyle = `rgba(${baseColor.r}, ${baseColor.g}, ${baseColor.b}, 1)`;
-                    this.con2.fillRect(x, y, 1, 1);
-
                     // 点における明るさ
                     const brightness = this.getBrightnessOfPoint(opaqueIntersection);
 
-                    // 影を重ねる
-                    this.con2.fillStyle = `rgba(0, 0, 0, ${1 - brightness})`;
+                    // 一番奥の面を描画
+                    const baseColor = intersectionsWithViewLayAndFaces[i].face.color;
+                    this.con2.fillStyle = `rgba(${baseColor.r * brightness}, ${baseColor.g * brightness}, ${baseColor.b * brightness})`;
                     this.con2.fillRect(x, y, 1, 1);
 
                     // 奥の面を描画したので減らしておく

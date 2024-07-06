@@ -68,12 +68,14 @@ export class Edge {
      * @returns {boolean}
      */
     isPointInRange(point) {
-        const toPointVector1 = getVectorFrom2Points(this.vertex1.point, point);
-        const toPointVector2 = getVectorFrom2Points(this.vertex2.point, point);
-        const innerProduct1 = getInnerProduct(this.vector, toPointVector1);
-        const innerProduct2 = getInnerProduct(this.vector, toPointVector2);
-
-        return innerProduct1 >= 0 && innerProduct2 <= 0;
+        return (
+            Math.min(this.vertex1.x, this.vertex2.x) <= point.x &&
+            Math.max(this.vertex1.x, this.vertex2.x) >= point.x &&
+            Math.min(this.vertex1.y, this.vertex2.y) <= point.y &&
+            Math.max(this.vertex1.y, this.vertex2.y) >= point.y &&
+            Math.min(this.vertex1.z, this.vertex2.z) <= point.z &&
+            Math.max(this.vertex1.z, this.vertex2.z) >= point.z
+        );
     }
 
     /**
@@ -139,10 +141,11 @@ export class HalfLine extends Line {
      * @returns {boolean}
      */
     isPointInRange(point) {
-        const toPointVector = getVectorFrom2Points(this.point, point);
-        const innerProduct = getInnerProduct(this.vector, toPointVector);
-
-        return innerProduct >= 0;
+        return (
+            Math.sign(this.vector.x) === Math.sign(point.x - this.point.x) &&
+            Math.sign(this.vector.y) === Math.sign(point.y - this.point.y) &&
+            Math.sign(this.vector.z) === Math.sign(point.z - this.point.z)
+        );
     }
 
     /**
@@ -303,11 +306,7 @@ export function getIntersectionsEdgeOrHalfLineAndFaces(edgeOrHalfLine, faces) {
         returnsList.push({ face, intersection, length });
     }
     // 交点までの距離をもとに昇順ソート
-    returnsList.sort((a, b) => {
-        if (a.length < b.length) return -1;
-        if (a.length > b.length) return 1;
-        return 0;
-    });
+    returnsList.sort((a, b) => a.length - b.length);
 
     return returnsList;
 }
