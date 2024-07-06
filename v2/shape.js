@@ -1,4 +1,4 @@
-import { Color, Line, Plane, Point, Vector, getCrossProduct, getInnerProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
+import { Color, Line, Plane, Point, Vector, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
 
 
 /**
@@ -142,9 +142,9 @@ export class HalfLine extends Line {
      */
     isPointInRange(point) {
         return (
-            Math.sign(this.vector.x) === Math.sign(point.x - this.point.x) &&
-            Math.sign(this.vector.y) === Math.sign(point.y - this.point.y) &&
-            Math.sign(this.vector.z) === Math.sign(point.z - this.point.z)
+            Math.sign(this.vector.x) === Math.sign(point.x - this.point.x + Math.sign(this.vector.x) * 0.0001) &&
+            Math.sign(this.vector.y) === Math.sign(point.y - this.point.y + Math.sign(this.vector.y) * 0.0001) &&
+            Math.sign(this.vector.z) === Math.sign(point.z - this.point.z + Math.sign(this.vector.z) * 0.0001)
         );
     }
 
@@ -191,6 +191,28 @@ export class Face {
         this.normalVector = getCrossProduct(this.vector1, this.vector2);
 
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.vertex1.point);
+
+        this.max = new Point(
+            Math.max(vertex1.x, vertex2.x, vertex3.x),
+            Math.max(vertex1.y, vertex2.y, vertex3.y),
+            Math.max(vertex1.z, vertex2.z, vertex3.z),
+        );
+        this.min = new Point(
+            Math.min(vertex1.x, vertex2.x, vertex3.x),
+            Math.min(vertex1.y, vertex2.y, vertex3.y),
+            Math.min(vertex1.z, vertex2.z, vertex3.z),
+        );
+
+        const range = [
+            this.max,
+            new Point(this.max.x, this.min.y, this.max.z),
+            new Point(this.min.x, this.min.y, this.max.z),
+            new Point(this.max.x, this.max.y, this.max.z),
+            this.min,
+            new Point(this.max.x, this.min.y, this.min.z),
+            new Point(this.min.x, this.min.y, this.min.z),
+            new Point(this.max.x, this.max.y, this.min.z),
+        ];
     }
 
     getClone() {
@@ -272,10 +294,16 @@ export class Light {
  * @returns {Point|null}
  */
 export function getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
-    // 交点が辺or半直線上にあるかどうか
+    // 面が範囲外のときreturn null
+    if (edgeOrHalfLine instanceof HalfLine) {
+        if (!edgeOrHalfLine.isPointInRange(face.max) && !edgeOrHalfLine.isPointInRange(face.min)) return null;
+    }
+    // 辺or半直線と面の交点
     const intersection = edgeOrHalfLine.getIntersectionWithPlane(face.plane);
+    // const p = edgeOrHalfLine.getIntersectionWithPlane(face.plane);
     if (intersection) {
         // 交点が面上にあるかどうか
+        // const q = face.isPointOnFace(intersection);
         if (face.isPointOnFace(intersection)) {
             return intersection;
         }
