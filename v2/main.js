@@ -262,6 +262,4 @@ function mainLoop() {
     // con.fillText(`${((performance.now() - zeroFrameTime) / frame * 100 | 0) / 100}ms`, 5, CAN_H - 2);
 }
 
-// mainLoop();
-
 setInterval(mainLoop, MSPF);

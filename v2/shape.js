@@ -56,6 +56,17 @@ export class Edge {
         this.vertex2 = vertex2;
         this.vector = getVectorFrom2Points(vertex1.point, vertex2.point);
         this.line = new Line(vertex1.point, this.vector);
+
+        this.max = new Point(
+            Math.max(vertex1.x, vertex2.x),
+            Math.max(vertex1.y, vertex2.y),
+            Math.max(vertex1.z, vertex2.z),
+        );
+        this.min = new Point(
+            Math.min(vertex1.x, vertex2.x),
+            Math.min(vertex1.y, vertex2.y),
+            Math.min(vertex1.z, vertex2.z),
+        );
     }
 
     getClone() {
@@ -284,6 +295,31 @@ export class Light {
  * @returns {Point|null}
  */
 export function getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
+    // 範囲外のときreturn
+    if (edgeOrHalfLine instanceof HalfLine) {
+        if (
+            (edgeOrHalfLine.vector.x >= 0 && edgeOrHalfLine.point.x >= face.max.x) ||
+            (edgeOrHalfLine.vector.x < 0 && edgeOrHalfLine.point.x < face.min.x) ||
+            (edgeOrHalfLine.vector.y >= 0 && edgeOrHalfLine.point.y >= face.max.y) ||
+            (edgeOrHalfLine.vector.y < 0 && edgeOrHalfLine.point.y < face.min.y) ||
+            (edgeOrHalfLine.vector.z >= 0 && edgeOrHalfLine.point.z >= face.max.z) ||
+            (edgeOrHalfLine.vector.z < 0 && edgeOrHalfLine.point.z < face.min.z)
+        ) {
+            return null;
+        }
+    }
+    else if (edgeOrHalfLine instanceof Edge) {
+        if (
+            (edgeOrHalfLine.max.x < face.min.x) ||
+            (edgeOrHalfLine.min.x > face.max.x) ||
+            (edgeOrHalfLine.max.y < face.min.y) ||
+            (edgeOrHalfLine.min.y > face.max.y) ||
+            (edgeOrHalfLine.max.z < face.min.z) ||
+            (edgeOrHalfLine.min.z > face.max.z)
+        ) {
+            return null;
+        }
+    }
     // 辺or半直線と面の交点
     const intersection = edgeOrHalfLine.getIntersectionWithPlane(face.plane);
     // const p = edgeOrHalfLine.getIntersectionWithPlane(face.plane);
