@@ -80,12 +80,12 @@ export class Edge {
      */
     isPointInRange(point) {
         return (
-            Math.min(this.vertex1.x, this.vertex2.x) <= point.x &&
-            Math.max(this.vertex1.x, this.vertex2.x) >= point.x &&
-            Math.min(this.vertex1.y, this.vertex2.y) <= point.y &&
-            Math.max(this.vertex1.y, this.vertex2.y) >= point.y &&
-            Math.min(this.vertex1.z, this.vertex2.z) <= point.z &&
-            Math.max(this.vertex1.z, this.vertex2.z) >= point.z
+            this.min.x <= point.x &&
+            this.max.x >= point.x &&
+            this.min.y <= point.y &&
+            this.max.y >= point.y &&
+            this.min.z <= point.z &&
+            this.max.z >= point.z
         );
     }
 
@@ -322,7 +322,6 @@ export function getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
     }
     // 辺or半直線と面の交点
     const intersection = edgeOrHalfLine.getIntersectionWithPlane(face.plane);
-    // const p = edgeOrHalfLine.getIntersectionWithPlane(face.plane);
     if (intersection) {
         // 交点が面上にあるかどうか
         // const q = face.isPointOnFace(intersection);

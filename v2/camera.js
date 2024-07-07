@@ -257,7 +257,7 @@ export class Camera {
             let brightness = light.getBrightnessFromPoint(point);
             // 障害物による明るさ
             for (const intersection of obstacleIntersections) {
-                brightness *= (1 - intersection.face.color.a);
+                brightness *= (1 - intersection.face.color.a * 0.8);
             }
             allBrightness += brightness;
         }
