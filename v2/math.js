@@ -22,26 +22,6 @@ export function tan(degree) {
 
 
 
-/**
- * 二つの色を混ぜる（重ねる）関数
- * @param {number[]} color1 合成される色（奥）
- * @param {number[]} color2 合成する色（手前）
- * @returns {number[]} 合成後の色
- */
-export function getMixedColor(color1, color2) {
-    const a1 = color1[3];
-    const a2 = color2[3];
-
-    const a = a1 + (1 - a1) * a2;
-
-    const newColor = [];
-    for (let i = 0; i < 3; i++) {
-        newColor[i] = (color2[i] * a2 + color1[i] * (1 - a2) * a1) / a;
-    }
-    newColor[3] = a;
-    return newColor;
-}
-
 export class Color {
     /**
      * 
@@ -55,6 +35,42 @@ export class Color {
         this.g = g;
         this.b = b;
         this.a = a;
+    }
+
+    getClone() {
+        return new Color(this.r, this.g, this.b, this.a);
+    }
+
+    getString() {
+        return `rgba(${this.r}, ${this.g}, ${this.b}, ${this.a})`;
+    }
+
+    /**
+     * 色を混ぜるメソッド
+     * @param {Color} color 
+     * @returns {Color}
+     */
+    mixColor(color) {
+        const a = color.a + this.a * (1 - color.a);
+        this.r = (color.r * color.a + this.r * this.a * (1 - color.a)) / a;
+        this.g = (color.g * color.a + this.g * this.a * (1 - color.a)) / a;
+        this.b = (color.b * color.a + this.b * this.a * (1 - color.a)) / a;
+        this.a = a;
+
+        return this.getClone();
+    }
+
+    /**
+     * 明るさを乗算し、更に新しいColorクラスを返す
+     * @param {number} rate 0~1
+     * @returns {Color}
+     */
+    multiplyBrightness(rate) {
+        this.r *= rate;
+        this.g *= rate;
+        this.b *= rate;
+
+        return this.getClone();
     }
 }
 

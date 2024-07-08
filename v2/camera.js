@@ -1,4 +1,4 @@
-import { Point, Vector, cos, getPlaneFromVectorAndPoint, getSumOfVectors, getVectorFrom2Points, sin } from "./math.js";
+import { Color, Point, Vector, cos, getPlaneFromVectorAndPoint, getSumOfVectors, getVectorFrom2Points, sin } from "./math.js";
 import { Edge, Face, HalfLine, Light, Vertex, getEdgeFromPoints, getIntersectionsEdgeOrHalfLineAndFaces } from "./shape.js";
 import { drawCircle, drawLine } from "./context.js";
 
@@ -291,6 +291,9 @@ export class Camera {
                 }
                 intersectionsWithViewLayAndFaces.length = i + 1;
 
+                // もとの色（黒色透明）
+                const color = new Color(0, 0, 0, 0);
+
                 // 一番奥の面が不透明のとき
                 if (intersectionsWithViewLayAndFaces[i].face.color.a === 1) {
                     // 配列の最後（唯一の不透明度1）の交点と面
@@ -303,21 +306,22 @@ export class Camera {
                     // 点における明るさ
                     const brightness = this.getBrightnessOfPoint(opaqueIntersection);
 
-                    // 一番奥の面を描画
-                    const baseColor = intersectionsWithViewLayAndFaces[i].face.color;
-                    this.con2.fillStyle = `rgba(${baseColor.r * brightness}, ${baseColor.g * brightness}, ${baseColor.b * brightness})`;
-                    this.con2.fillRect(x, y, 1, 1);
+                    // 一番奥の面を重ねる
+                    color.mixColor(intersectionsWithViewLayAndFaces[i].face.color);
+                    color.multiplyBrightness(brightness);
 
-                    // 奥の面を描画したので減らしておく
+                    // 奥の面を処理したので減らしておく
                     i--;
                 }
 
                 // 半透明の面を重ねる
                 for (let k = i; k >= 0; k--) {
-                    const color = intersectionsWithViewLayAndFaces[k].face.color;
-                    this.con2.fillStyle = `rgba(${color.r}, ${color.g}, ${color.b}, ${color.a})`;
-                    this.con2.fillRect(x, y, 1, 1);
+                    color.mixColor(intersectionsWithViewLayAndFaces[k].face.color);
                 }
+
+                // 描画
+                this.con2.fillStyle = color.getString();
+                this.con2.fillRect(x, y, 1, 1);
             }
         }
     }
