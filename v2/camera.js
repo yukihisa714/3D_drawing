@@ -274,7 +274,7 @@ export class Camera {
      */
     getColorFromViewLayHalfLine(halfLine) {
         // もとの色（黒色透明）
-        const color = new Color(0, 0, 0, 0);
+        const color = new Color(0, 0, 0, 0.1);
 
         // 半直線と面の交点（距離の近い順にソートされている）
         const intersectionsWithViewLayAndFaces = getIntersectionsEdgeOrHalfLineAndFaces(halfLine, this.importedFaces);
