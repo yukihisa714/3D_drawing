@@ -72,9 +72,9 @@ const VERTEXES = [
     new Vertex(-7, 5, 1),
     new Vertex(-7, 3, 1),
 
-    new Vertex(-3, 10, -1),
-    new Vertex(-1, 10, 3),
-    new Vertex(1, 10, -1),
+    new Vertex(-5, 10, -1),
+    new Vertex(0, 10, 6),
+    new Vertex(5, 10, -1),
 
     new Vertex(-1.5, 3, 0),
     new Vertex(0, 3, 2),
@@ -196,7 +196,7 @@ const FACE_COLORS_LIST = [
 
     [[255, 255, 255, 1], 0],
 
-    [[255, 255, 255, 1], 0],
+    [[255, 255, 255, 1], 1],
 ];
 
 const FACES = [];

@@ -51,6 +51,10 @@ export class Color {
      * @returns {Color}
      */
     mixColor(color) {
+        if (color.a === 0) {
+            return color.getClone();
+        }
+
         const a = color.a + this.a * (1 - color.a);
         this.r = (color.r * color.a + this.r * this.a * (1 - color.a)) / a;
         this.g = (color.g * color.a + this.g * this.a * (1 - color.a)) / a;
@@ -300,6 +304,8 @@ export function getSumOfVectors(vectorsList) {
         result.y += v.y;
         result.z += v.z;
     }
+    result.length = result.getLength();
+
     return result;
 }
 

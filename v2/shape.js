@@ -199,7 +199,7 @@ export class Face {
         this.vector1 = getVectorFrom2Points(this.vertex1.point, this.vertex2.point);
         this.vector2 = getVectorFrom2Points(this.vertex1.point, this.vertex3.point);
 
-        this.normalVector = getCrossProduct(this.vector1, this.vector2);
+        this.normalVector = getCrossProduct(this.vector1, this.vector2).changeLength(1);
 
         this.plane = getPlaneFromVectorAndPoint(this.normalVector, this.vertex1.point);
 
@@ -217,7 +217,7 @@ export class Face {
     }
 
     getClone() {
-        return new Face(this.vertex1.getClone(), this.vertex2.getClone(), this.vertex3.getClone(), this.color);
+        return new Face(this.vertex1.getClone(), this.vertex2.getClone(), this.vertex3.getClone(), this.color, this.roughness);
     }
 
     /**

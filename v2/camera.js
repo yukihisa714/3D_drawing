@@ -1,4 +1,4 @@
-import { Color, Point, Vector, cos, getPlaneFromVectorAndPoint, getSumOfVectors, getVectorFrom2Points, sin } from "./math.js";
+import { Color, Point, Vector, cos, getInnerProduct, getPlaneFromVectorAndPoint, getSumOfVectors, getVectorFrom2Points, sin } from "./math.js";
 import { Edge, Face, HalfLine, Light, Vertex, getEdgeFromPoints, getIntersectionsEdgeOrHalfLineAndFaces } from "./shape.js";
 import { drawCircle, drawLine } from "./context.js";
 
@@ -267,57 +267,86 @@ export class Camera {
         return allBrightness;
     }
 
+    /**
+     * 視点の半直線から色を取得する
+     * @param {halfLine} halfLine 
+     * @returns {Color}
+     */
+    getColorFromViewLayHalfLine(halfLine) {
+        // もとの色（黒色透明）
+        const color = new Color(0, 0, 0, 0);
+
+        // 半直線と面の交点（距離の近い順にソートされている）
+        const intersectionsWithViewLayAndFaces = getIntersectionsEdgeOrHalfLineAndFaces(halfLine, this.importedFaces);
+        // どの面とも交わらなければreturn
+        if (intersectionsWithViewLayAndFaces.length === 0) {
+            return color;
+        }
+        // 交点を順に検査し、不透明度が1の面の交点より遠くの交点の要素を削除
+        let i = 0;
+        while (true) {
+            if (intersectionsWithViewLayAndFaces[i].face.color.a === 1) {
+                break;
+            }
+            if (intersectionsWithViewLayAndFaces.length === i + 1) {
+                break;
+            }
+            i++;
+        }
+        intersectionsWithViewLayAndFaces.length = i + 1;
+
+        // 一番奥の面が不透明のとき
+        if (intersectionsWithViewLayAndFaces[i].face.color.a === 1) {
+            // 配列の最後（唯一の不透明度1）の交点と面
+            const opaqueIntersection = intersectionsWithViewLayAndFaces[i].intersection.getClone();
+            const opaqueFace = intersectionsWithViewLayAndFaces[i].face.getClone();
+            // 交点を含む面がライトまでの障害物にならないようにカメラ方向に少し補正
+            const fixVector = halfLine.vector.getClone().changeLength(-0.0001);
+            opaqueIntersection.move(fixVector);
+
+            // 鏡面のとき
+            if (opaqueFace.roughness !== 1) {
+                // 光線のベクトルに鏡面の法線ベクトルを合成して反射ベクトルを取得
+                const toAddVectorLength = -2 * getInnerProduct(opaqueFace.normalVector, halfLine.vector);
+                const toAddVector = opaqueFace.normalVector.getClone().changeLength(toAddVectorLength);
+                const reflectionVector = getSumOfVectors([halfLine.vector, toAddVector]);
+                // 反射光線の半直線
+                const reflectionHalfLine = new HalfLine(opaqueIntersection, reflectionVector);
+                // 反射先の色
+                // ※再帰関数
+                const reflectionColor = this.getColorFromViewLayHalfLine(reflectionHalfLine);
+
+                color.mixColor(reflectionColor);
+            }
+            // 鏡面でないとき
+            else {
+                // 点における明るさ
+                const brightness = this.getBrightnessOfPoint(opaqueIntersection);
+
+                // 一番奥の面を重ねる
+                color.mixColor(opaqueFace.color);
+                color.multiplyBrightness(brightness);
+            }
+
+            // 奥の面を処理したので減らしておく
+            i--;
+        }
+
+        // 半透明の面を重ねる
+        for (let k = i; k >= 0; k--) {
+            color.mixColor(intersectionsWithViewLayAndFaces[k].face.color);
+        }
+
+        return color;
+    }
+
     drawFaces() {
         for (let y = 0; y < this.canH; y++) {
             for (let x = 0; x < this.canW; x++) {
                 // 焦点から特定のピクセルへの半直線
                 const viewLayHalfLine = this.getCameraViewLayHalfLine(x, y);
-                // 半直線と面の交点（距離の近い順にソートされている）
-                const intersectionsWithViewLayAndFaces = getIntersectionsEdgeOrHalfLineAndFaces(viewLayHalfLine, this.importedFaces);
-                // どの面とも交わらなければcontinue
-                if (intersectionsWithViewLayAndFaces.length === 0) {
-                    continue;
-                }
-                // 交点を順に検査し、不透明度が1の面の交点より遠くの交点の要素を削除
-                let i = 0;
-                while (true) {
-                    if (intersectionsWithViewLayAndFaces[i].face.color.a === 1) {
-                        break;
-                    }
-                    if (intersectionsWithViewLayAndFaces.length === i + 1) {
-                        break;
-                    }
-                    i++;
-                }
-                intersectionsWithViewLayAndFaces.length = i + 1;
 
-                // もとの色（黒色透明）
-                const color = new Color(0, 0, 0, 0);
-
-                // 一番奥の面が不透明のとき
-                if (intersectionsWithViewLayAndFaces[i].face.color.a === 1) {
-                    // 配列の最後（唯一の不透明度1）の交点と面
-                    const opaqueIntersection = intersectionsWithViewLayAndFaces[i].intersection.getClone();
-                    // const opaqueFace = intersectionsWithViewLayAndFaces[i].face.getClone();
-                    // 交点を含む面がライトまでの障害物にならないようにカメラ方向に少し補正
-                    const fixVector = viewLayHalfLine.vector.getClone().changeLength(-0.0001);
-                    opaqueIntersection.move(fixVector);
-
-                    // 点における明るさ
-                    const brightness = this.getBrightnessOfPoint(opaqueIntersection);
-
-                    // 一番奥の面を重ねる
-                    color.mixColor(intersectionsWithViewLayAndFaces[i].face.color);
-                    color.multiplyBrightness(brightness);
-
-                    // 奥の面を処理したので減らしておく
-                    i--;
-                }
-
-                // 半透明の面を重ねる
-                for (let k = i; k >= 0; k--) {
-                    color.mixColor(intersectionsWithViewLayAndFaces[k].face.color);
-                }
+                const color = this.getColorFromViewLayHalfLine(viewLayHalfLine);
 
                 // 描画
                 this.con2.fillStyle = color.getString();
