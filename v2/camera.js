@@ -301,7 +301,8 @@ export class Camera {
             const opaqueIntersection = intersectionsWithViewLayAndFaces[i].intersection.getClone();
             const opaqueFace = intersectionsWithViewLayAndFaces[i].face.getClone();
             // 交点を含む面がライトまでの障害物にならないようにカメラ方向に少し補正
-            const fixVector = halfLine.vector.getClone().changeLength(-0.0001);
+            const fixVectorLength = -0.0001 * getInnerProduct(opaqueFace.normalVector, halfLine.vector);
+            const fixVector = opaqueFace.normalVector.getClone().changeLength(fixVectorLength);
             opaqueIntersection.move(fixVector);
 
             // 鏡面のとき

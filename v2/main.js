@@ -80,9 +80,9 @@ const VERTEXES = [
     new Vertex(0, 3, 2),
     new Vertex(2, 1.5, -0.5),
 
-    new Vertex(7, 8, -1),
-    new Vertex(7, 3, 6),
-    new Vertex(7, -2, -1),
+    new Vertex(-5, -10.01, -1),
+    new Vertex(0, -10, 6),
+    new Vertex(5, -9.99, -1),
 ];
 
 for (let i = 0; i < VERTEXES.length; i++) {
