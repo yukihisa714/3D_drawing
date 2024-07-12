@@ -29,7 +29,7 @@ const con = can.getContext("2d");
 const can2 = document.getElementById("render-camera-view");
 can2.width = CAN_W;
 can2.height = CAN_H;
-can2.style.background = "#888";
+can2.style.background = "#def";
 const con2 = can2.getContext("2d");
 
 const ctxs = [con, con2];
@@ -56,7 +56,7 @@ const VERTEXES = [
     new Vertex(1, 4, 1),
     new Vertex(1, 4, -1),
     new Vertex(-1, 4, -1),
-    new Vertex(-1, 4, 1),
+    new Vertex(-1, 4, 1), // 8
 
     new Vertex(15, 15, -1.5),
     new Vertex(15, -15, -1.5),
@@ -70,19 +70,23 @@ const VERTEXES = [
     new Vertex(-5, 3, 1),
     new Vertex(-5, 5, 1),
     new Vertex(-7, 5, 1),
-    new Vertex(-7, 3, 1),
+    new Vertex(-7, 3, 1), // 20
 
     new Vertex(-5, 10, -1),
-    new Vertex(0, 10, 6),
+    new Vertex(5, 10, 6),
     new Vertex(5, 10, -1),
 
-    new Vertex(-1.5, 3, 0),
+    new Vertex(-1.5, 2.5, 0),
     new Vertex(0, 3, 2),
     new Vertex(2, 1.5, -0.5),
 
-    new Vertex(-5, -10.01, -1),
-    new Vertex(0, -10, 6),
-    new Vertex(5, -9.99, -1),
+    new Vertex(-10, -6.01, -1),
+    new Vertex(0, -6, 9),
+    new Vertex(10, -6, -1),
+
+    new Vertex(-5, 10, -1),
+    new Vertex(-5, 10, 6),
+    new Vertex(5, 10, 6),
 ];
 
 for (let i = 0; i < VERTEXES.length; i++) {
@@ -174,6 +178,7 @@ const FACE_INDEXES_LIST = [
     [24, 25, 26],
 
     [27, 28, 29],
+    [30, 31, 32],
 ];
 
 const FACE_COLORS_LIST = [
@@ -204,6 +209,7 @@ const FACE_COLORS_LIST = [
 
     [[255, 255, 255, 1], 1],
 
+    [[255, 255, 255, 1], 0],
     [[255, 255, 255, 1], 0],
 ];
 

@@ -19,7 +19,9 @@ export function tan(degree) {
     return Math.tan(degreesToRadians(degree));
 }
 
-
+export function getRandom(min, max) {
+    return (max - min) * Math.random() + min;
+}
 
 
 export class Color {
