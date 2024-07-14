@@ -80,7 +80,7 @@ const VERTEXES = [
     new Vertex(0, 3, 2),
     new Vertex(2, 1.5, -0.5),
 
-    new Vertex(-10, -6.01, -1),
+    new Vertex(-10, -6, -1),
     new Vertex(0, -6, 9),
     new Vertex(10, -6, -1),
 
@@ -247,6 +247,7 @@ const CAMERA = new Camera(
     expandingRatio,
     FPS,
     3,
+    50,
     key,
     ctxs,
     VERTEXES,

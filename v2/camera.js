@@ -28,7 +28,7 @@ export class Camera {
      * @param {Face[]} faces インポートする面の配列
      * @param {Light[]} lights インポートするライトの配列
      */
-    constructor(pos, rx, rz, focalLength, width, height, canW, canH, expandingRatio, fps, speed, key, ctxs, vertexes, edges, faces, lights) {
+    constructor(pos, rx, rz, focalLength, width, height, canW, canH, expandingRatio, fps, speed, reflectionLimit, key, ctxs, vertexes, edges, faces, lights) {
         this.pos = pos;
         this.rx = rx;
         this.rz = rz;
@@ -40,6 +40,7 @@ export class Camera {
         this.expandingRatio = expandingRatio;
         this.fps = fps;
         this.speed = speed;
+        this.reflectionLimit = reflectionLimit;
         this.key = key;
 
         this.ctxs = ctxs;
@@ -50,6 +51,14 @@ export class Camera {
         this.edges = edges;
         this.faces = faces;
         this.lights = lights;
+
+        this.reflectionCountList = [];
+        for (let y = 0; y < canH; y++) {
+            this.reflectionCountList[y] = [];
+            for (let x = 0; x < canW; x++) {
+                this.reflectionCountList[y][x] = 0;
+            }
+        }
 
         this.importShapes();
         this.update();
@@ -270,9 +279,11 @@ export class Camera {
     /**
      * 視点の半直線から色を取得する
      * @param {halfLine} halfLine 
+     * @param {number} x pixel
+     * @param {number} y pixel
      * @returns {Color}
      */
-    getColorFromViewLayHalfLine(halfLine) {
+    getColorFromViewLayHalfLine(halfLine, x, y) {
         // もとの色（黒色透明）
         const color = new Color(0, 0, 0, 0.1);
 
@@ -313,9 +324,15 @@ export class Camera {
                 const reflectionVector = getSumOfVectors([halfLine.vector, toAddVector]);
                 // 反射光線の半直線
                 const reflectionHalfLine = new HalfLine(opaqueIntersection, reflectionVector);
+
+                // 反射回数を上回ったらreturn
+                this.reflectionCountList[y][x]++;
+                if (this.reflectionCountList[y][x] > this.reflectionLimit) {
+                    return color;
+                }
                 // 反射先の色
                 // ※再帰関数
-                const reflectionColor = this.getColorFromViewLayHalfLine(reflectionHalfLine);
+                const reflectionColor = this.getColorFromViewLayHalfLine(reflectionHalfLine, x, y);
 
                 color.mixColor(reflectionColor);
             }
@@ -344,10 +361,13 @@ export class Camera {
     drawFaces() {
         for (let y = 0; y < this.canH; y++) {
             for (let x = 0; x < this.canW; x++) {
+
+                this.reflectionCountList[y][x] = 0;
+
                 // 焦点から特定のピクセルへの半直線
                 const viewLayHalfLine = this.getCameraViewLayHalfLine(x, y);
 
-                const color = this.getColorFromViewLayHalfLine(viewLayHalfLine);
+                const color = this.getColorFromViewLayHalfLine(viewLayHalfLine, x, y);
 
                 // 描画
                 this.con2.fillStyle = color.getString();
