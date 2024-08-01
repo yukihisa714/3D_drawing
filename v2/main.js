@@ -19,13 +19,13 @@ const expandingRatio = 50;
 // キャンバスサイズ（ピクセル）
 const CAN_W = CAMERA_W * expandingRatio;
 const CAN_H = CAMERA_H * expandingRatio;
-
+// キャンバスの設定
 const can = document.getElementById("wireframe-camera-view");
 can.width = CAN_W;
 can.height = CAN_H;
 can.style.background = "#888";
 const con = can.getContext("2d");
-
+// キャンバスの設定
 const can2 = document.getElementById("render-camera-view");
 can2.width = CAN_W;
 can2.height = CAN_H;
@@ -34,7 +34,7 @@ const con2 = can2.getContext("2d");
 
 const ctxs = [con, con2];
 
-
+// キーの状態を連想配列で保存
 const key = {};
 document.onkeydown = e => {
     key[e.key] = true;
@@ -89,7 +89,7 @@ const VERTEXES = [
     new Vertex(-11, -0, 3),
     new Vertex(-5, -3, 3),
 ];
-
+// 連番を付ける
 for (let i = 0; i < VERTEXES.length; i++) {
     VERTEXES[i].i = i;
 }
@@ -201,6 +201,7 @@ const FACE_INDEXES_LIST = [
     [28, 29, 26],
 ];
 
+// [[r, g, b, a], roughness]
 const FACE_COLORS_LIST = [
     // 床
     [[150, 255, 150, 1], 1],
@@ -265,36 +266,37 @@ const LIGHTS = [
 
 
 const CAMERA = new Camera(
-    new Point(0, 0, 0),
-    0,
-    0,
-    3,
-    CAMERA_W,
+    new Point(0, 0, 0), // 座標
+    0, // x軸回転
+    0, // z軸回転
+    3, // 焦点距離
+    CAMERA_W, // カメラの大きさ
     CAMERA_H,
-    CAN_W,
+    CAN_W, // キャンバスの大きさ
     CAN_H,
-    expandingRatio,
-    FPS,
-    3,
-    50,
-    key,
-    ctxs,
-    VERTEXES,
-    EDGES,
-    FACES,
-    LIGHTS,
+    expandingRatio, // キャンバスの拡大率
+    FPS, // fps
+    3, // 移動速度
+    50, // 反射制限回数
+    key, // キーの状態
+    ctxs, // キャンバスの情報
+    VERTEXES, // 頂点
+    EDGES, // 辺
+    FACES, // 面
+    LIGHTS, // ライト
 );
 
 
 let frame = 0;
-const zeroFrameTime = performance.now();
 
 function mainLoop() {
     const st = performance.now();
 
+    // キャンバスの描画をリセット
     con.clearRect(0, 0, CAN_W, CAN_H);
     con2.clearRect(0, 0, CAN_W, CAN_H);
 
+    // カメラの更新
     CAMERA.update();
 
     const et = performance.now();
@@ -302,8 +304,6 @@ function mainLoop() {
     con.fillText(`${((et - st) * 100 | 0) / 100}ms`, 5, 10);
 
     frame++;
-
-    // con.fillText(`${((performance.now() - zeroFrameTime) / frame * 100 | 0) / 100}ms`, 5, CAN_H - 2);
 }
 
 setInterval(mainLoop, MSPF);
