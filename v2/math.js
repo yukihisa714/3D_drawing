@@ -53,8 +53,9 @@ export class Color {
      * @returns {Color}
      */
     mixColor(color) {
+        // 重ねる色のアルファが0のとき何もしない
         if (color.a === 0) {
-            return color.getClone();
+            return this.getClone();
         }
 
         const a = color.a + this.a * (1 - color.a);
