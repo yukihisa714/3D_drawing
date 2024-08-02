@@ -137,10 +137,10 @@ export class Camera {
         const cameraVectorToRightPixel = this.onCameraPlane1pxVector.toRight.getClone().multiplication(x);
         // 焦点から特定のピクセルへのベクトル
         const cameraPixelVectorFromFocus = getSumOfVectors([
+            this.normalVector, // 焦点からカメラの中心へのベクトル
+            this.cornerVectorsFromPos.topLeft, // 焦点からカメラの左上へのベクトル
+            cameraVectorToRightPixel, // 焦点から特定のピクセルへのベクトル
             cameraVectorToBottomPixel,
-            cameraVectorToRightPixel, // カメラの左上から特定のピクセルへのベクトル
-            this.cornerVectorsFromPos.topLeft, // カメラの中心から特定のピクセルへのベクトル
-            this.normalVector, // 焦点から特定のピクセルへのベクトル
         ]);
         // 焦点から特定のピクセルへの半直線
         const viewLayHalfLine = new HalfLine(this.focus, cameraPixelVectorFromFocus);
@@ -195,11 +195,7 @@ export class Camera {
         const y2 = cosRX * y1 - sinRX * z1;
         const z2 = sinRX * y1 + cosRX * z1;
 
-        const x3 = x2 + this.pos.x;
-        const y3 = y2 + this.pos.y;
-        const z3 = z2 + this.pos.z;
-
-        return new Vertex(x3, y3, z3, vertex.i);
+        return new Vertex(x2, y2, z2, vertex.i);
     }
 
     /**
@@ -212,8 +208,8 @@ export class Camera {
         if (projectedVertex === null) return null;
         const convertedVertex = this.getConvertedVertex(projectedVertex);
 
-        const x = (convertedVertex.x - this.pos.x) * this.expandingRatio + this.canW / 2;
-        const y = (convertedVertex.z - this.pos.z) * -this.expandingRatio + this.canH / 2;
+        const x = convertedVertex.x * this.expandingRatio + this.canW / 2;
+        const y = convertedVertex.z * -this.expandingRatio + this.canH / 2;
 
         return { x, y };
     }
@@ -223,11 +219,11 @@ export class Camera {
             const toDrawVertex = this.getToDrawVertex(vertex);
             if (toDrawVertex === null) continue;
 
-            const { x: dx, y: dy } = toDrawVertex;
+            const { x, y } = toDrawVertex;
 
-            drawCircle(this.con, dx, dy, 2.5);
+            drawCircle(this.con, x, y, 2.5);
             this.con.fillStyle = "#fff";
-            this.con.fillText(vertex.i, dx, dy);
+            this.con.fillText(vertex.i, x, y);
         }
     }
 
