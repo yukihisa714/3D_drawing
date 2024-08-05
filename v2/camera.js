@@ -222,8 +222,9 @@ export class Camera {
             const { x, y } = toDrawVertex;
 
             drawCircle(this.con, x, y, 2.5);
-            this.con.fillStyle = "#fff";
-            this.con.fillText(vertex.i, x, y);
+            // 頂点の番号を表示
+            // this.con.fillStyle = "#fff";
+            // this.con.fillText(vertex.i, x, y);
         }
     }
 
@@ -235,7 +236,7 @@ export class Camera {
             const toDrawVertex1 = this.getToDrawVertex(convertedEdge.vertex1);
             const toDrawVertex2 = this.getToDrawVertex(convertedEdge.vertex2);
             // toDrawVertexがnull つまり 頂点が両方カメラ平面の裏にあるときcontinue
-            if (toDrawVertex1 === null) continue;
+            if (toDrawVertex1 === null || toDrawVertex2 === null) continue;
 
             const dx1 = toDrawVertex1.x;
             const dy1 = toDrawVertex1.y;
