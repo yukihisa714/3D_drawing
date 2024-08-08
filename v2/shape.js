@@ -274,7 +274,7 @@ export class Light {
      */
     getBrightness(length) {
         /**
-         * ステロイドはやっぱだめ
+         * アステロイドはやっぱだめ
          * 逆二乗からは程遠い
          * y = t^2 / (x + t)^2
          */

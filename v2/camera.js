@@ -233,10 +233,8 @@ export class Camera {
             // toDrawVertexがnull つまり 頂点が両方カメラ平面の裏にあるときcontinue
             if (toDrawVertex1 === null || toDrawVertex2 === null) continue;
 
-            const dx1 = toDrawVertex1.x;
-            const dy1 = toDrawVertex1.y;
-            const dx2 = toDrawVertex2.x;
-            const dy2 = toDrawVertex2.y;
+            const { x: dx1, y: dy1 } = toDrawVertex1;
+            const { x: dx2, y: dy2 } = toDrawVertex2;
 
             drawLine(this.con, dx1, dy1, dx2, dy2);
         }
