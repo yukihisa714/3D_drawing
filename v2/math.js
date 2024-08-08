@@ -24,9 +24,12 @@ export function getRandom(min, max) {
 }
 
 
+/**
+ * 色のクラス
+ */
 export class Color {
     /**
-     * 
+     * コンストラクタ
      * @param {number} r 0~255
      * @param {number} g 0~255
      * @param {number} b 0~255
@@ -179,6 +182,38 @@ export class Vector {
     }
 
     /**
+     * ベクトルをx軸を中心に回転するメソッド
+     * 自身を回転し、更に新しいVectorクラスを返す
+     * @param {number} rx x軸を中心にした回転角度
+     * @returns {Vector}
+     */
+    rotateX(rx) {
+        const y = cos(rx) * this.y - sin(rx) * this.z;
+        const z = sin(rx) * this.y + cos(rx) * this.z;
+
+        this.y = y;
+        this.z = z;
+
+        return this.getClone();
+    }
+
+    /**
+     * ベクトルをz軸を中心に回転するメソッド
+     * 自身を回転し、更に新しいVectorクラスを返す
+     * @param {number} rz z軸を中心にした回転角度
+     * @returns {Vector}
+     */
+    rotateZ(rz) {
+        const x = cos(-rz) * this.x - sin(-rz) * this.y;
+        const y = sin(-rz) * this.x + cos(-rz) * this.y;
+
+        this.x = x;
+        this.y = y;
+
+        return this.getClone();
+    }
+
+    /**
      * ベクトルを回転するメソッド
      * 自身を回転し、更に新しいVectorクラスを返す
      * @param {number} rx x軸を中心にした回転
@@ -194,17 +229,8 @@ export class Vector {
         Z = ysinθ + zcosθ
         */
 
-        const x1 = this.x;
-        const y1 = cos(rx) * this.y - sin(rx) * this.z;
-        const z1 = sin(rx) * this.y + cos(rx) * this.z;
-
-        const x2 = cos(-rz) * x1 - sin(-rz) * y1;
-        const y2 = sin(-rz) * x1 + cos(-rz) * y1;
-        const z2 = z1;
-
-        this.x = x2;
-        this.y = y2;
-        this.z = z2;
+        this.rotateX(rx);
+        this.rotateZ(rz);
 
         return this.getClone();
     }

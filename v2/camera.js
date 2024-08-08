@@ -64,6 +64,7 @@ export class Camera {
         this.update();
     }
 
+    // 空間上の図形をコピーしてインポートするメソッド
     importShapes() {
         this.importedVertexes = this.vertexes.map(vertex => vertex.getClone());
         this.importedEdges = this.edges.map(edge => edge.getClone());
@@ -88,31 +89,35 @@ export class Camera {
     }
 
     updateCornerVectorsFromPos() {
+        // カメラ中央からカメラの四隅へのベクトル
         this.cornerVectorsFromPos = {
             topLeft: new Vector(-this.width / 2, 0, this.height / 2),
             topRight: new Vector(this.width / 2, 0, this.height / 2),
             bottomLeft: new Vector(-this.width / 2, 0, -this.height / 2),
             bottomRight: new Vector(this.width / 2, 0, -this.height / 2),
         };
+        // それぞれを回転
         for (const key in this.cornerVectorsFromPos) {
             this.cornerVectorsFromPos[key].rotate(this.rx, this.rz);
         }
     }
 
     updateCornerPoints() {
+        // カメラの四隅の点(まだ中央)
         this.cornerPoints = {
             topLeft: this.pos.getClone(),
             topRight: this.pos.getClone(),
             bottomLeft: this.pos.getClone(),
             bottomRight: this.pos.getClone(),
         };
+        // 四隅に移動
         for (const key in this.cornerPoints) {
             this.cornerPoints[key].move(this.cornerVectorsFromPos[key]);
         }
     }
 
     updateOnCameraPlaneVector() {
-        // カメラの左上から右上又は左下へのベクトル
+        // カメラの左上から、右上又は左下へのベクトル
         this.onCameraPlaneVector = {
             toRight: getVectorFrom2Points(this.cornerPoints.topLeft, this.cornerPoints.topRight),
             toBottom: getVectorFrom2Points(this.cornerPoints.topLeft, this.cornerPoints.bottomLeft),
@@ -151,7 +156,7 @@ export class Camera {
     /**
      * 点をカメラ平面に投影
      * @param {Vertex} vertex 
-     * @returns {Vertex|null} 点が
+     * @returns {Vertex|null} 点がカメラ平面の後ろにあったらnull
      */
     getProjectedVertex(vertex) {
         // 点がカメラ平面の後ろにあったらreturn
@@ -166,7 +171,7 @@ export class Camera {
 
     /**
      * カメラ平面の点の座標を変換（posを中心に回転し正規化）するメソッド
-     * @param {Vertex} vertex 返還前の座標
+     * @param {Vertex} vertex 変換前の座標
      * @returns {Vertex} 変換後の座標
      */
     getConvertedVertex(vertex) {
@@ -180,22 +185,12 @@ export class Camera {
         Z = ysinθ + zcosθ
         */
 
+        vectorFromCamPos.rotateZ(-this.rz);
+        vectorFromCamPos.rotateX(-this.rx);
+
         const { x, y, z } = vectorFromCamPos;
 
-        const sinRZ = sin(this.rz);
-        const cosRZ = cos(this.rz);
-        const sinRX = sin(-this.rx);
-        const cosRX = cos(-this.rx);
-
-        const x1 = cosRZ * x - sinRZ * y;
-        const y1 = sinRZ * x + cosRZ * y;
-        const z1 = z;
-
-        const x2 = x1;
-        const y2 = cosRX * y1 - sinRX * z1;
-        const z2 = sinRX * y1 + cosRX * z1;
-
-        return new Vertex(x2, y2, z2, vertex.i);
+        return new Vertex(x, y, z, vertex.i);
     }
 
     /**
@@ -223,8 +218,8 @@ export class Camera {
 
             drawCircle(this.con, x, y, 2.5);
             // 頂点の番号を表示
-            // this.con.fillStyle = "#fff";
-            // this.con.fillText(vertex.i, x, y);
+            this.con.fillStyle = "#fff";
+            this.con.fillText(vertex.i, x, y);
         }
     }
 
@@ -379,30 +374,43 @@ export class Camera {
     move() {
         const v = this.speed / this.fps;
 
+        // 移動
+        // 左
         if (this.key["a"]) {
             this.pos.x -= cos(this.rz) * v;
             this.pos.y += sin(this.rz) * v;
         }
+        // 右
         if (this.key["d"]) {
             this.pos.x += cos(this.rz) * v;
             this.pos.y -= sin(this.rz) * v;
         }
+        // 前
         if (this.key["w"]) {
             this.pos.x += sin(this.rz) * v;
             this.pos.y += cos(this.rz) * v;
         }
+        // 後ろ
         if (this.key["s"]) {
             this.pos.x -= sin(this.rz) * v;
             this.pos.y -= cos(this.rz) * v;
         }
 
+        // 上
         if (this.key[" "]) this.pos.z += v;
+        // 下
         if (this.key["Shift"]) this.pos.z -= v;
 
+
+        // 回転
         const rv = 2;
+        // 左
         if (this.key["ArrowLeft"]) this.rz -= rv;
+        // 右
         if (this.key["ArrowRight"]) this.rz += rv;
+        // 上
         if (this.key["ArrowUp"]) this.rx += rv;
+        // 下
         if (this.key["ArrowDown"]) this.rx -= rv;
     }
 
