@@ -1,4 +1,4 @@
-import { Color, Line, Plane, Point, Vector, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
+import { Color, Line, Plane, Point, Vector, abs, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
 
 
 /**
@@ -96,8 +96,13 @@ export class Edge {
      */
     getIntersectionWithPlane(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
+        // console.log(intersection);
         if (this.isPointInRange(intersection)) {
-            return intersection;
+            // 無限のときnull
+            if (abs(intersection.x) === Infinity || abs(intersection.y) === Infinity || abs(intersection.z) === Infinity) {
+                return null;
+            }
+            else return intersection;
         }
         else return null;
     }
@@ -167,7 +172,11 @@ export class HalfLine extends Line {
     getIntersectionWithPlane(plane) {
         const intersection = getIntersectionFromLineAndPlane(this.line, plane);
         if (this.isPointInRange(intersection)) {
-            return intersection;
+            // 無限のときnull
+            if (abs(intersection.x) === Infinity || abs(intersection.y) === Infinity || abs(intersection.z) === Infinity) {
+                return null;
+            }
+            else return intersection;
         }
         else return null;
     }

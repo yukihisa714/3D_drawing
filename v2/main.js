@@ -1,4 +1,4 @@
-import { Color, Point, abs, cos, sin } from "./math.js";
+import { Color, Point, cos, sin } from "./math.js";
 import { Edge, Face, Light, Vertex } from "./shape.js";
 import { Camera } from "./camera.js";
 
@@ -302,19 +302,19 @@ function mainLoop() {
 
     // アニメーション
     if (doesAnimation) {
-        CAMERA.pos.x = sin(frame % 360 + 0.5) * 5;
-        CAMERA.pos.y = cos(frame % 360 + 0.5) * -5 + 5;
-        CAMERA.pos.z = -cos(frame % 360 + 0.5) * 1 + 1;
-        CAMERA.rz = -frame % 360 + 0.5;
-        CAMERA.rx = (cos(frame % 360 + 0.5) - 1) * 15;
+        CAMERA.pos.x = sin(frame % 360) * 5;
+        CAMERA.pos.y = cos(frame % 360) * -5 + 5;
+        CAMERA.pos.z = -cos(frame % 360) * 1 + 1;
+        CAMERA.rz = -frame % 360;
+        CAMERA.rx = (cos(frame % 360) - 1) * 15;
     }
 
     // カメラの更新
     CAMERA.update();
 
     const et = performance.now();
-    // con.fillStyle = "#fff";
-    // con.fillText(`${((et - st) * 100 | 0) / 100}ms`, 5, 10);
+    con.fillStyle = "#fff";
+    con.fillText(`${((et - st) * 100 | 0) / 100}ms`, 5, 10);
 
     frame++;
 }

@@ -357,7 +357,9 @@ export class Camera {
 
     drawFaces() {
         for (let y = 0; y < this.canH; y++) {
+            // console.log(y);
             for (let x = 0; x < this.canW; x++) {
+                // console.log(x);
 
                 this.reflectionCountList[y][x] = 0;
 
