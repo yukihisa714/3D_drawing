@@ -1,6 +1,6 @@
-import { Color, Point, cos, sin } from "./math.js";
-import { Edge, Face, Light, Vertex } from "./shape.js";
-import { Camera } from "./camera.js";
+// import { Color, Point, cos, sin } from "./math.js";
+// import { Edge, Face, Light, Vertex } from "./shape.js";
+// import { Camera } from "./camera.js";
 
 
 

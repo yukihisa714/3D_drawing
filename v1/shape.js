@@ -1,7 +1,7 @@
 import { Line, Plane, Point, Vector, getCrossProduct, getInnerProduct, getIntersectionFromLineAndPlane, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points, max, min } from "./math.js";
 
 
-export class Vertex extends Point {
+class Vertex extends Point {
     constructor(x, y, z, i) {
         super(x, y, z);
         this.i = i;
@@ -13,7 +13,7 @@ export class Vertex extends Point {
     }
 }
 
-export class Edge {
+class Edge {
     constructor(vertex1, vertex2) {
         this.vertex1 = vertex1;
         this.vertex2 = vertex2;
@@ -63,7 +63,7 @@ export class Edge {
     }
 }
 
-export class HalfLine extends Line {
+class HalfLine extends Line {
     constructor(point, vector) {
         super(point, vector);
         this.line = new Line(this.point, this.vector);
@@ -88,7 +88,7 @@ export class HalfLine extends Line {
 console.log(new HalfLine(new Point(0, 0, 0), new Vector(1, 1, 1)));
 
 
-export class Face {
+class Face {
     constructor(vertex1, vertex2, vertex3, color, roughness) {
         this.vertex1 = vertex1;
         this.vertex2 = vertex2;
@@ -126,7 +126,7 @@ export class Face {
 }
 
 
-export class Light {
+class Light {
     constructor(pos, power, color) {
         this.pos = pos;
         this.power = power;
@@ -144,7 +144,7 @@ export class Light {
  * @param {Face} face 
  * @returns {boolean}
  */
-export function checkDoesIntersectEdgeAndFace(edge, face) {
+function checkDoesIntersectEdgeAndFace(edge, face) {
     return (
         // 交点が辺上にあるかどうか
         edge.checkEdgePlaneIntersection(face.plane) &&
@@ -153,7 +153,7 @@ export function checkDoesIntersectEdgeAndFace(edge, face) {
     );
 }
 
-export function checkDoesIntersectHalfLineAndFace(halfLine, face) {
+function checkDoesIntersectHalfLineAndFace(halfLine, face) {
     return (
         // 交点が半直線上にあるかどうか
         halfLine.isOnIntersectionWithPlane(face.plane) &&

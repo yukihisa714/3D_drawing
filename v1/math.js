@@ -2,31 +2,31 @@ function degreesToRadians(degree) {
     return degree * Math.PI / 180;
 }
 
-export function abs(number) {
+function abs(number) {
     return Math.abs(number);
 }
-export function sqrt(number) {
+function sqrt(number) {
     return Math.sqrt(number);
 }
 
-export function sin(degree) {
+function sin(degree) {
     return Math.sin(degreesToRadians(degree));
 }
-export function cos(degree) {
+function cos(degree) {
     return Math.cos(degreesToRadians(degree));
 }
-export function tan(degree) {
+function tan(degree) {
     return Math.tan(degreesToRadians(degree));
 }
 
-export function max(num1, num2) {
+function max(num1, num2) {
     return Math.max(num1, num2);
 }
-export function min(num1, num2) {
+function min(num1, num2) {
     return Math.min(num1, num2);
 }
 
-export function get2dArray(row, col) {
+function get2dArray(row, col) {
     const array = [];
     for (let r = 0; r < row; r++) {
         array[r] = new Array(col);
@@ -39,7 +39,7 @@ export function get2dArray(row, col) {
  * @param {Array} color1 合成される色
  * @param {Array} color2 合成する色
  */
-export function getMixedColor(color1, color2) {
+function getMixedColor(color1, color2) {
     const a1 = color1[3];
     const a2 = color2[3];
 
@@ -57,7 +57,7 @@ console.log(getMixedColor([255, 255, 255, 1], [0, 255, 0, 0.5]));
 /**
  * ポイントのクラス
  */
-export class Point {
+class Point {
     /**
      * コンストラクタ
      * @param {number} x 座標
@@ -92,7 +92,7 @@ export class Point {
 /**
  * ベクトルのクラス
  */
-export class Vector {
+class Vector {
     /**
      * コンストラクタ
      * @param {number} x 要素
@@ -189,7 +189,7 @@ export class Vector {
 /**
  * 直線のクラス
  */
-export class Line {
+class Line {
     /**
      * 直線の方程式
      * P(x0, y0, z0)を通り、
@@ -219,7 +219,7 @@ export class Line {
     }
 }
 
-export class Plane {
+class Plane {
     /**
      * 平面の方程式
      * ax + by + cz + d = 0
@@ -268,7 +268,7 @@ export class Plane {
  * @param {Vector} vector2 
  * @returns {Vector}
  */
-export function getSumOf2Vectors(vector1, vector2) {
+function getSumOf2Vectors(vector1, vector2) {
     return new Vector(vector1.x + vector2.x, vector1.y + vector2.y, vector1.z + vector2.z);
 }
 
@@ -280,7 +280,7 @@ export function getSumOf2Vectors(vector1, vector2) {
  * @param {Vector} vector2 ベクトル2
  * @returns {number} 内積
  */
-export function getInnerProduct(vector1, vector2) {
+function getInnerProduct(vector1, vector2) {
     return vector1.x * vector2.x + vector1.y * vector2.y + vector1.z * vector2.z;
 }
 
@@ -291,7 +291,7 @@ export function getInnerProduct(vector1, vector2) {
  * @param {Vector} vector2 ベクトル2
  * @returns {Vector} 外積
  */
-export function getCrossProduct(vector1, vector2) {
+function getCrossProduct(vector1, vector2) {
     const a = vector1;
     const b = vector2;
     return new Vector(
@@ -307,7 +307,7 @@ export function getCrossProduct(vector1, vector2) {
  * @param {Point} point2 終点
  * @returns {Vector}
  */
-export function getVectorFrom2Points(point1, point2) {
+function getVectorFrom2Points(point1, point2) {
     return new Vector(point2.x - point1.x, point2.y - point1.y, point2.z - point1.z);
 }
 
@@ -317,7 +317,7 @@ export function getVectorFrom2Points(point1, point2) {
  * @param {Point} point2 終点
  * @returns {number} 距離
  */
-export function getLengthFrom2Points(point1, point2) {
+function getLengthFrom2Points(point1, point2) {
     return getVectorFrom2Points(point1, point2).length;
 }
 
@@ -330,7 +330,7 @@ export function getLengthFrom2Points(point1, point2) {
  * @param {Vector} bVector 基準のベクトル
  * @returns {Object} {s, t}
  */
-export function getSTFrom3Vectors(pVector, aVector, bVector) {
+function getSTFrom3Vectors(pVector, aVector, bVector) {
     /**
      * a→ = (ax, ay, az)
      * b→ = (bx, by, bz)
@@ -392,7 +392,7 @@ export function getSTFrom3Vectors(pVector, aVector, bVector) {
  * @param {Point} point ポイント
  * @returns {Plane} 平面
  */
-export function getPlaneFromVectorAndPoint(normalVector, point) {
+function getPlaneFromVectorAndPoint(normalVector, point) {
     const { x: a, y: b, z: c } = normalVector;
 
     const { x: x0, y: y0, z: z0 } = point;
@@ -409,7 +409,7 @@ export function getPlaneFromVectorAndPoint(normalVector, point) {
  * @param {Plane} plane 平面
  * @returns {Point} 交点
  */
-export function getIntersectionFromLineAndPlane(line, plane) {
+function getIntersectionFromLineAndPlane(line, plane) {
     /*
     x = x0 + tl
     y = y0 + tm

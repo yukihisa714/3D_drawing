@@ -1,10 +1,10 @@
-import { Color, Line, Plane, Point, Vector, abs, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
+// import { Color, Line, Plane, Point, Vector, abs, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
 
 
 /**
  * 頂点のクラス
  */
-export class Vertex {
+class Vertex {
     /**
      * コンストラクタ
      * @param {number} x 座標
@@ -45,7 +45,7 @@ export class Vertex {
 /**
  * 辺のクラス
  */
-export class Edge {
+class Edge {
     /**
      * コンストラクタ
      * @param {Vertex} vertex1 
@@ -136,7 +136,7 @@ export class Edge {
 /**
  * 半直線のクラス
  */
-export class HalfLine extends Line {
+class HalfLine extends Line {
     /**
      * コンストラクタ
      * @param {Point} point 端の点
@@ -188,7 +188,7 @@ export class HalfLine extends Line {
 /**
  * 面のクラス
  */
-export class Face {
+class Face {
     /**
      * コンストラクタ
      * @param {Vertex} vertex1 
@@ -250,7 +250,7 @@ export class Face {
 /**
  * ライトのクラス
  */
-export class Light {
+class Light {
     /**
      * コンストラクタ
      * @param {Point} pos 位置
@@ -303,7 +303,7 @@ export class Light {
  * @param {Face} face 
  * @returns {Point|null}
  */
-export function getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
+function getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
     // 範囲外のときreturn
     if (edgeOrHalfLine instanceof HalfLine) {
         if (
@@ -348,7 +348,7 @@ export function getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face) {
  * @param {Face[]} faces 面の配列
  * @returns {{face: Face, intersection: Point, length: number}[]} vertex1から交点までの距離の昇順(小さい順)でソートされている
  */
-export function getIntersectionsEdgeOrHalfLineAndFaces(edgeOrHalfLine, faces) {
+function getIntersectionsEdgeOrHalfLineAndFaces(edgeOrHalfLine, faces) {
     const returnsList = [];
     for (const face of faces) {
         const intersection = getIntersectionEdgeOrHalfLineAndFace(edgeOrHalfLine, face);
@@ -376,7 +376,7 @@ export function getIntersectionsEdgeOrHalfLineAndFaces(edgeOrHalfLine, faces) {
  * @param {Point} point 
  * @returns {Vertex}
  */
-export function getVertexFromPoint(point) {
+function getVertexFromPoint(point) {
     return new Vertex(point.x, point.y, point.z);
 }
 /**
@@ -385,7 +385,7 @@ export function getVertexFromPoint(point) {
  * @param {Point} point2 
  * @returns {Edge}
  */
-export function getEdgeFromPoints(point1, point2) {
+function getEdgeFromPoints(point1, point2) {
     return new Edge(
         getVertexFromPoint(point1),
         getVertexFromPoint(point2),
@@ -398,7 +398,7 @@ export function getEdgeFromPoints(point1, point2) {
  * @param {Point} point3 
  * @returns {Face}
  */
-export function getFaceFrom3Points(point1, point2, point3) {
+function getFaceFrom3Points(point1, point2, point3) {
     return new Face(
         getVertexFromPoint(point1),
         getVertexFromPoint(point2),
