@@ -1,9 +1,3 @@
-// import { Color, Point, cos, sin } from "./math.js";
-// import { Edge, Face, Light, Vertex } from "./shape.js";
-// import { Camera } from "./camera.js";
-
-
-
 // FPS
 const FPS = 30;
 // 1フレームのミリ秒

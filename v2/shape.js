@@ -1,6 +1,3 @@
-// import { Color, Line, Plane, Point, Vector, abs, getCrossProduct, getIntersectionFromLineAndPlane, getLengthFrom2Points, getPlaneFromVectorAndPoint, getSTFrom3Vectors, getVectorFrom2Points } from "./math.js";
-
-
 /**
  * 頂点のクラス
  */

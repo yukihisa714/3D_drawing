@@ -1,9 +1,3 @@
-// import { Color, Point, Vector, cos, getInnerProduct, getPlaneFromVectorAndPoint, getSumOfVectors, getVectorFrom2Points, sin } from "./math.js";
-// import { Edge, Face, HalfLine, Light, Vertex, getEdgeFromPoints, getIntersectionsEdgeOrHalfLineAndFaces } from "./shape.js";
-// import { drawCircle, drawLine } from "./context.js";
-
-
-
 /**
  * カメラのクラス
  */
