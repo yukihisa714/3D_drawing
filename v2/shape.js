@@ -133,14 +133,15 @@ class Edge {
 /**
  * 半直線のクラス
  */
-class HalfLine extends Line {
+class HalfLine {
     /**
      * コンストラクタ
      * @param {Point} point 端の点
-     * @param {Vector} vector 
+     * @param {Vector} vector 半直線が伸びる向き
      */
     constructor(point, vector) {
-        super(point, vector);
+        this.point = point;
+        this.vector = vector;
         this.line = new Line(this.point, this.vector);
     }
 
